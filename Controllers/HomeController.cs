@@ -210,6 +210,9 @@ namespace ShoeStore.Controllers
                 .AsSplitQuery();
         }
 
+        // Trang chính sách: /chinh-sach (thanh toán, giao hàng, đổi trả, bảo hành, bảo mật)
+        [Route("chinh-sach")]
+        [Route("Home/Privacy", Order = 1)] // giữ địa chỉ cũ để link đã lưu trước đây vẫn mở được
         public IActionResult Privacy()
         {
             return View();

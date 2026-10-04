@@ -81,11 +81,18 @@
         </div>
     </form>
 
-    <div class="d-flex justify-content-end mb-2 text-muted">
-        @if (totalItems > 0)
-        {
-            <span>Hiển thị <strong>@fromItem–@toItem</strong> / <strong>@totalItems</strong> đơn hàng</span>
-        }
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+        @* Xuất Excel ĐÚNG các đơn đang lọc (trạng thái, từ khoá, khoảng ngày) *@
+        <a class="btn btn-success btn-sm @(totalItems == 0 ? "disabled" : "")" asp-controller="AdminOrders" asp-action="Export"
+           asp-all-route-data="@filter.ToRouteValues(1)" title="Tải file Excel các đơn đang hiển thị theo bộ lọc">
+            <i class="bi bi-file-earmark-excel"></i> Xuất Excel (@totalItems đơn)
+        </a>
+        <span class="text-muted">
+            @if (totalItems > 0)
+            {
+                <text>Hiển thị <strong>@fromItem–@toItem</strong> / <strong>@totalItems</strong> đơn hàng</text>
+            }
+        </span>
     </div>
 
     <div class="table-responsive">

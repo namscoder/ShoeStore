@@ -13,6 +13,11 @@
 
     <div class="admin-user">
 
+        @* Luôn hiện để quay về trang bán hàng (khách hàng) *@
+        <a class="btn btn-outline-primary btn-sm admin-store-link" asp-controller="Home" asp-action="Index">
+            <i class="bi bi-shop"></i> Xem trang bán hàng
+        </a>
+
         <div class="admin-avatar">
             @(string.IsNullOrEmpty(displayName) ? "A" : displayName.Substring(0, 1).ToUpper())
         </div>

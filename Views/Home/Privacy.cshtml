@@ -1,6 +1,175 @@
-﻿@{
-    ViewData["Title"] = "Privacy Policy";
-}
-<h1>@ViewData["Title"]</h1>
+@{
+    ViewData["Title"] = "Chính sách cửa hàng";
+    ViewData["FullWidth"] = true;
 
-<p>Use this page to detail your site's privacy policy.</p>
+    // Mục lục bên trái: (id để nhảy tới, icon, tên)
+    var sections = new (string Id, string Icon, string Name)[]
+    {
+        ("mua-hang", "🛒", "Mua hàng & thanh toán"),
+        ("giao-hang", "🚚", "Giao hàng"),
+        ("huy-don", "✖️", "Huỷ đơn hàng"),
+        ("doi-tra", "🔄", "Đổi trả"),
+        ("bao-hanh", "🛠", "Bảo hành"),
+        ("bao-mat", "🔒", "Bảo mật thông tin"),
+    };
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/policy.css" asp-append-version="true" />
+}
+
+<div class="pl-page">
+    <div class="pl-hero">
+        <span class="pl-eyebrow">Chính sách</span>
+        <h1>Mua sắm an tâm tại ShoeStore</h1>
+        <p>Những điều bạn cần biết về thanh toán, giao hàng, đổi trả và cách chúng tôi bảo vệ thông tin của bạn.</p>
+
+        <div class="pl-highlights">
+            <div><strong>💵 COD</strong><span>Nhận hàng rồi mới trả tiền</span></div>
+            <div><strong>🚚 Miễn phí</strong><span>Giao hàng toàn quốc</span></div>
+            <div><strong>🔄 7 ngày</strong><span>Đổi size, đổi mẫu</span></div>
+            <div><strong>✅ Chính hãng</strong><span>Hoàn tiền nếu phát hiện hàng giả</span></div>
+        </div>
+    </div>
+
+    <div class="pl-layout">
+        <!-- ============ MỤC LỤC ============ -->
+        <nav class="pl-toc" aria-label="Mục lục">
+            @foreach (var s in sections)
+            {
+                <a href="#@s.Id" data-toc="@s.Id"><span>@s.Icon</span> @s.Name</a>
+            }
+        </nav>
+
+        <!-- ============ NỘI DUNG ============ -->
+        <div class="pl-content">
+            <section id="mua-hang" class="pl-card">
+                <h2>🛒 Mua hàng & thanh toán</h2>
+                <ol>
+                    <li>Chọn sản phẩm, <strong>màu</strong> và <strong>size</strong>, bấm <em>Thêm vào giỏ</em>.</li>
+                    <li>Vào <a asp-controller="Cart" asp-action="Index">Giỏ hàng</a>, kiểm tra số lượng rồi bấm <em>Tiến hành đặt hàng</em>.</li>
+                    <li>Nhập số điện thoại, chọn địa chỉ nhận hàng và bấm <em>Đặt hàng</em>.</li>
+                </ol>
+                <p>
+                    Bạn cần <a asp-controller="Account" asp-action="Register">đăng ký tài khoản</a> để đặt hàng và theo dõi đơn.
+                    Giá sản phẩm được <strong>chốt tại thời điểm đặt hàng</strong>: nếu sau đó cửa hàng đổi giá, đơn của bạn vẫn giữ giá cũ.
+                </p>
+                <div class="pl-note">
+                    <strong>Thanh toán khi nhận hàng (COD):</strong> bạn được kiểm tra hàng (mẫu, màu, size) trước khi trả tiền cho nhân viên giao hàng.
+                    Cửa hàng <strong>không bao giờ</strong> yêu cầu chuyển khoản trước qua tin nhắn hay điện thoại.
+                </div>
+            </section>
+
+            <section id="giao-hang" class="pl-card">
+                <h2>🚚 Giao hàng</h2>
+                <ul>
+                    <li><strong>Miễn phí giao hàng</strong> cho mọi đơn trên toàn quốc.</li>
+                    <li>Thời gian dự kiến: <strong>1–2 ngày</strong> với nội thành Hà Nội, TP. Hồ Chí Minh; <strong>3–5 ngày</strong> với các tỉnh thành khác.</li>
+                    <li>Theo dõi trạng thái đơn trong mục <a asp-controller="Order" asp-action="Index">Đơn hàng của tôi</a>:</li>
+                </ul>
+                <div class="pl-steps">
+                    <span>Chờ xác nhận</span><i>›</i>
+                    <span>Đã xác nhận</span><i>›</i>
+                    <span>Đang giao</span><i>›</i>
+                    <span>Hoàn thành</span>
+                </div>
+                <p>Nhân viên giao hàng sẽ gọi trước cho số điện thoại trên đơn. Vui lòng để ý điện thoại trong thời gian chờ nhận hàng.</p>
+            </section>
+
+            <section id="huy-don" class="pl-card">
+                <h2>✖️ Huỷ đơn hàng</h2>
+                <ul>
+                    <li>Đơn đang <strong>Chờ xác nhận</strong>: bạn tự huỷ được ngay trong trang chi tiết đơn hàng.</li>
+                    <li>Đơn đã được xác nhận hoặc đang giao: vui lòng gọi hotline để cửa hàng hỗ trợ.</li>
+                    <li>Đơn đã huỷ có nút <em>Đặt lại</em> để cho nhanh các sản phẩm vào giỏ hàng (theo số lượng còn trong kho).</li>
+                </ul>
+            </section>
+
+            <section id="doi-tra" class="pl-card">
+                <h2>🔄 Đổi trả</h2>
+                <p>Trong vòng <strong>7 ngày</strong> kể từ khi nhận hàng, bạn được:</p>
+                <ul>
+                    <li><strong>Đổi size, đổi màu</strong> hoặc đổi sang mẫu khác (bù/hoàn chênh lệch giá nếu có), miễn phí 1 lần.</li>
+                    <li><strong>Trả hàng, hoàn tiền 100%</strong> nếu sản phẩm bị lỗi do nhà sản xuất hoặc giao sai mẫu, màu, size so với đơn.</li>
+                </ul>
+                <p><strong>Điều kiện:</strong> giày chưa qua sử dụng, không bẩn, còn đủ hộp, tem nhãn và phụ kiện kèm theo.</p>
+                <div class="pl-note pl-note-warn">
+                    Không áp dụng đổi trả với giày đã đi ngoài trời, đã giặt hoặc bị hư hỏng do sử dụng sai cách.
+                </div>
+            </section>
+
+            <section id="bao-hanh" class="pl-card">
+                <h2>🛠 Bảo hành</h2>
+                <ul>
+                    <li>Bảo hành <strong>keo, chỉ</strong> trong <strong>3 tháng</strong> kể từ ngày nhận hàng.</li>
+                    <li>Không bảo hành với hao mòn tự nhiên (mòn đế, phai màu) hoặc hư hỏng do tác động bên ngoài.</li>
+                    <li>Khi cần bảo hành, hãy liên hệ hotline kèm <strong>mã đơn hàng</strong> (vd: #12) để cửa hàng tra cứu.</li>
+                </ul>
+            </section>
+
+            <section id="bao-mat" class="pl-card">
+                <h2>🔒 Bảo mật thông tin</h2>
+                <h3>Chúng tôi lưu những gì?</h3>
+                <ul>
+                    <li>Thông tin tài khoản: tên đăng nhập, họ tên, email, số điện thoại, địa chỉ mặc định.</li>
+                    <li>Lịch sử giỏ hàng và đơn hàng của bạn.</li>
+                </ul>
+
+                <h3>Dùng để làm gì?</h3>
+                <ul>
+                    <li>Xử lý và giao đơn hàng, liên hệ khi cần xác nhận đơn.</li>
+                    <li>Điền sẵn thông tin giao hàng cho lần mua sau (bạn có thể sửa hoặc xoá trong trang <a asp-controller="Profile" asp-action="Index">Tài khoản</a>).</li>
+                </ul>
+
+                <h3>Chúng tôi bảo vệ như thế nào?</h3>
+                <ul>
+                    <li>Mật khẩu được <strong>mã hoá một chiều</strong> trước khi lưu: kể cả nhân viên cửa hàng cũng không xem được mật khẩu của bạn.</li>
+                    <li>Chỉ chia sẻ tên, số điện thoại, địa chỉ cho <strong>đơn vị vận chuyển</strong> để giao hàng. Không bán hay cho bên thứ ba khác.</li>
+                    <li>Web chỉ dùng cookie để <strong>giữ trạng thái đăng nhập</strong>, không dùng cookie quảng cáo.</li>
+                </ul>
+
+                <h3>Quyền của bạn</h3>
+                <ul>
+                    <li>Xem và sửa thông tin cá nhân, đổi mật khẩu bất cứ lúc nào trong trang <a asp-controller="Profile" asp-action="Index">Tài khoản</a>.</li>
+                    <li>Yêu cầu khoá tài khoản bằng cách liên hệ cửa hàng.</li>
+                </ul>
+            </section>
+
+            <!-- ============ LIÊN HỆ ============ -->
+            <div class="pl-contact">
+                <div>
+                    <h2>Cần hỗ trợ thêm?</h2>
+                    <p>Giờ làm việc: @StoreInfo.WorkingHours</p>
+                </div>
+                <div class="pl-contact-actions">
+                    <a class="pl-btn pl-btn-light" href="tel:@StoreInfo.HotlineTel">📞 @StoreInfo.Hotline</a>
+                    <a class="pl-btn pl-btn-outline" href="mailto:@StoreInfo.Email">✉️ @StoreInfo.Email</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Tô đậm mục lục theo phần đang xem
+        (function () {
+            const links = document.querySelectorAll("[data-toc]");
+            if (!("IntersectionObserver" in window) || !links.length) return;
+
+            const observer = new IntersectionObserver(function (entries) {
+                entries.forEach(function (entry) {
+                    if (entry.isIntersecting) {
+                        links.forEach(function (a) {
+                            a.classList.toggle("active", a.dataset.toc === entry.target.id);
+                        });
+                    }
+                });
+            }, { rootMargin: "-30% 0px -60% 0px" });
+
+            document.querySelectorAll(".pl-content section[id]").forEach(function (s) {
+                observer.observe(s);
+            });
+        })();
+    </script>
+}

@@ -1,0 +1,280 @@
+/* ===== Trang Chính sách ===== */
+.pl-page {
+    max-width: var(--ss-max);
+    margin: 0 auto;
+    padding: 28px 24px 0;
+}
+
+/* ----- Phần đầu trang ----- */
+.pl-hero {
+    background: var(--ss-ink);
+    color: #fff;
+    border-radius: var(--ss-radius);
+    padding: 40px;
+    margin-bottom: 28px;
+}
+
+.pl-eyebrow {
+    color: var(--ss-accent);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.pl-hero h1 {
+    font-size: clamp(28px, 4vw, 42px);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin: 8px 0 10px;
+}
+
+.pl-hero > p {
+    color: #bdb8ae;
+    max-width: 620px;
+    margin: 0;
+}
+
+.pl-highlights {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-top: 28px;
+}
+
+.pl-highlights div {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 14px;
+    padding: 14px 16px;
+}
+
+.pl-highlights strong,
+.pl-highlights span {
+    display: block;
+}
+
+.pl-highlights span {
+    color: #bdb8ae;
+    font-size: 13px;
+    margin-top: 2px;
+}
+
+/* ----- Mục lục + nội dung ----- */
+.pl-layout {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    gap: 24px;
+    align-items: start;
+}
+
+.pl-toc {
+    position: sticky;
+    top: 88px;
+    background: var(--ss-surface);
+    border-radius: var(--ss-radius);
+    padding: 12px;
+}
+
+.pl-toc a {
+    display: flex;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--ss-ink-2);
+    text-decoration: none;
+}
+
+.pl-toc a:hover {
+    background: var(--ss-bg);
+    color: var(--ss-ink);
+}
+
+.pl-toc a.active {
+    background: #fff4ee;
+    color: var(--ss-accent-dark);
+    font-weight: 700;
+}
+
+.pl-content {
+    display: grid;
+    gap: 18px;
+}
+
+.pl-card {
+    background: var(--ss-surface);
+    border-radius: var(--ss-radius);
+    padding: 28px;
+    line-height: 1.7;
+    color: var(--ss-ink-2);
+    scroll-margin-top: 88px; /* nhảy tới mục không bị header che */
+}
+
+.pl-card h2 {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--ss-ink);
+    margin: 0 0 14px;
+}
+
+.pl-card h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--ss-ink);
+    margin: 18px 0 6px;
+}
+
+.pl-card ul,
+.pl-card ol {
+    padding-left: 22px;
+    margin-bottom: 12px;
+}
+
+.pl-card strong {
+    color: var(--ss-ink);
+}
+
+.pl-card a {
+    color: var(--ss-accent-dark);
+    font-weight: 600;
+}
+
+.pl-note {
+    padding: 14px 16px;
+    border-radius: 12px;
+    background: #eaf7ef;
+    color: #1d6b40;
+    font-size: 14px;
+}
+
+.pl-note strong {
+    color: inherit;
+}
+
+.pl-note-warn {
+    background: #fff4ee;
+    color: var(--ss-accent-dark);
+}
+
+/* Các bước trạng thái đơn hàng */
+.pl-steps {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin: 4px 0 14px;
+}
+
+.pl-steps span {
+    padding: 6px 14px;
+    border-radius: 999px;
+    background: var(--ss-bg);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ss-ink);
+}
+
+.pl-steps span:last-child {
+    background: #eaf7ef;
+    color: #1d8a4e;
+}
+
+.pl-steps i {
+    font-style: normal;
+    color: var(--ss-muted);
+}
+
+/* ----- Liên hệ cuối trang ----- */
+.pl-contact {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    background: var(--ss-accent);
+    color: #fff;
+    border-radius: var(--ss-radius);
+    padding: 24px 28px;
+}
+
+.pl-contact h2 {
+    font-size: 22px;
+    font-weight: 800;
+    margin: 0 0 2px;
+}
+
+.pl-contact p {
+    margin: 0;
+    opacity: 0.9;
+}
+
+.pl-contact-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.pl-btn {
+    padding: 10px 18px;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 14px;
+    text-decoration: none;
+}
+
+.pl-btn-light {
+    background: #fff;
+    color: var(--ss-ink);
+}
+
+.pl-btn-outline {
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    color: #fff;
+}
+
+.pl-btn-light:hover {
+    color: var(--ss-accent-dark);
+}
+
+.pl-btn-outline:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+}
+
+/* ----- Màn hình nhỏ ----- */
+@media (max-width: 900px) {
+    .pl-layout {
+        grid-template-columns: 1fr;
+    }
+
+    /* Mục lục thành 1 hàng cuộn ngang */
+    .pl-toc {
+        position: static;
+        display: flex;
+        overflow-x: auto;
+        gap: 4px;
+        padding: 8px;
+    }
+
+    .pl-toc a {
+        white-space: nowrap;
+        padding: 8px 12px;
+    }
+
+    .pl-highlights {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 560px) {
+    .pl-page {
+        padding: 20px 16px 0;
+    }
+
+    .pl-hero,
+    .pl-card {
+        padding: 22px 18px;
+    }
+}

@@ -14,9 +14,14 @@ body {
     left: 0;
     background-color: #212529;
     color: white;
+
+    /* Menu dài hơn màn hình (laptop thấp) thì cuộn được, không bị mất mục cuối */
+    display: flex;
+    flex-direction: column;
 }
 
 .admin-logo {
+    flex: none; /* giữ nguyên cao 70px, chỉ phần menu bên dưới được cuộn */
     height: 70px;
     display: flex;
     align-items: center;
@@ -28,6 +33,8 @@ body {
 
 .admin-menu {
     padding: 15px 10px;
+    flex: 1;
+    overflow-y: auto;
 }
 
 .admin-menu-title {
@@ -45,8 +52,8 @@ body {
     color: #dee2e6;
     text-decoration: none;
 
-    padding: 12px 15px;
-    margin-bottom: 5px;
+    padding: 10px 15px;
+    margin-bottom: 4px;
 
     border-radius: 6px;
 
@@ -98,6 +105,11 @@ body {
     display: flex;
     align-items: center;
     gap: 10px;
+}
+
+/* Nút "Xem trang bán hàng" trên thanh trên cùng: luôn thấy, không phụ thuộc chiều cao sidebar */
+.admin-store-link {
+    margin-right: 12px;
 }
 
 .admin-avatar {

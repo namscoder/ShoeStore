@@ -56,6 +56,12 @@
             Thêm sản phẩm
         </a>
 
+        @* Xuất Excel các sản phẩm đang lọc: danh sách sản phẩm + tồn kho theo size/màu *@
+        <a asp-controller="Products" asp-action="Export" asp-all-route-data="@filter.ToRouteValues(1)"
+           class="btn btn-success" title="Tải file Excel sản phẩm và tồn kho theo bộ lọc đang chọn">
+            <i class="bi bi-file-earmark-excel"></i> Xuất Excel
+        </a>
+
         @* Nút mở/đóng khung bộ lọc *@
         <button type="button" class="btn btn-outline-primary"
                 data-bs-toggle="collapse" data-bs-target="#filterPanel"

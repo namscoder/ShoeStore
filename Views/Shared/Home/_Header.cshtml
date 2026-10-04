@@ -58,29 +58,49 @@
         </a>
 
         <div class="site-actions">
-    @if (User.Identity?.IsAuthenticated == true)
-    {
-        // Chỉ admin mới thấy nút Quản trị
-        if (User.IsInRole(AppRoles.Admin))
-        {
-            <a class="site-admin-link" asp-controller="Admin" asp-action="Index">Quản trị</a>
-        }
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                var fullName = User.FindFirstValue("FullName") ?? User.Identity.Name ?? "";
+                var initial = string.IsNullOrWhiteSpace(fullName) ? "?" : fullName.Trim()[..1].ToUpper();
 
-        @* Bấm vào tên để mở trang tài khoản *@
-        <a class="site-user @(controller == "Profile" ? "active" : "")" asp-controller="Profile" asp-action="Index"
-           title="Tài khoản của tôi">
-            Xin chào, <strong>@(User.FindFirstValue("FullName") ?? User.Identity.Name)</strong>
-        </a>
+                @* Tài khoản gọn trong 1 nút: ảnh chữ cái đầu + tên, bấm vào mở menu (dropdown của Bootstrap) *@
+                <div class="dropdown site-account">
+                    <button class="site-account-btn @(controller is "Profile" or "Order" ? "active" : "")" type="button"
+                            data-bs-toggle="dropdown" aria-expanded="false" aria-label="Tài khoản của @fullName">
+                        <span class="site-avatar">@initial</span>
+                        <span class="site-account-name">@fullName</span>
+                        <svg class="site-account-caret" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
+                            <path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+                        </svg>
+                    </button>
 
-        <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
-            <button type="submit" class="site-link-btn">Đăng xuất</button>
-        </form>
-    }
-    else
-    {
-        <a class="site-link" asp-controller="Account" asp-action="Login">Đăng nhập</a>
-        <a class="site-admin-link" asp-controller="Account" asp-action="Register">Đăng ký</a>
-    }
-</div>
+                    <ul class="dropdown-menu dropdown-menu-end site-account-menu">
+                        <li class="site-account-head">
+                            <strong>@fullName</strong>
+                            <small>@User.FindFirstValue(ClaimTypes.Email)</small>
+                        </li>
+                        <li><hr class="dropdown-divider" /></li>
+                        @if (User.IsInRole(AppRoles.Admin))
+                        {
+                            <li><a class="dropdown-item" asp-controller="Admin" asp-action="Index"><span>🛠</span> Trang quản trị</a></li>
+                        }
+                        <li><a class="dropdown-item" asp-controller="Profile" asp-action="Index"><span>👤</span> Tài khoản của tôi</a></li>
+                        <li><a class="dropdown-item" asp-controller="Order" asp-action="Index"><span>📦</span> Đơn hàng của tôi</a></li>
+                        <li><a class="dropdown-item" asp-controller="Profile" asp-action="ChangePassword"><span>🔒</span> Đổi mật khẩu</a></li>
+                        <li><hr class="dropdown-divider" /></li>
+                        <li>
+                            <form asp-controller="Account" asp-action="Logout" method="post">
+                                <button type="submit" class="dropdown-item"><span>↩</span> Đăng xuất</button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            }
+            else
+            {
+                <a class="site-link" asp-controller="Account" asp-action="Login">Đăng nhập</a>
+                <a class="site-admin-link site-register" asp-controller="Account" asp-action="Register">Đăng ký</a>
+            }
+        </div>
     </nav>
 </header>

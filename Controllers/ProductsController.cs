@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using ShoeStore.Data;
+using ShoeStore.Infrastructure;
 using ShoeStore.Models;
 using System.Text.Json;
 
@@ -51,6 +52,134 @@ namespace ShoeStore.Controllers
                 // Lấy 2 danh sách (biến thể + ảnh) bằng các câu SQL riêng thay vì 1 câu JOIN rất to
                 .AsSplitQuery();
 
+            query = ApplyFilter(query, filter);
+
+            // ===== Phân trang =====
+            var totalItems = await query.CountAsync();
+            var totalPages = Math.Max(1, (int)Math.Ceiling(totalItems / (double)PageSize));
+
+            // Trang không hợp lệ (vd: ?Page=0 hoặc ?Page=999) thì kéo về trong khoảng 1..totalPages
+            filter.Page = Math.Clamp(filter.Page, 1, totalPages);
+
+            var products = await query
+                .OrderByDescending(p => p.CreatedAt)
+                .ThenByDescending(p => p.Id)
+                .Skip((filter.Page - 1) * PageSize)
+                .Take(PageSize)
+                .ToListAsync();
+
+            // ===== Dữ liệu cho các ô lọc =====
+            var brands = await _context.Brands.OrderBy(b => b.Name).ToListAsync();
+            var categories = await _context.Categories.OrderBy(c => c.Name).ToListAsync();
+            var sizes = await _context.Sizes.OrderBy(s => s.Name).ToListAsync();
+            var colors = await _context.Colors.OrderBy(c => c.Name).ToListAsync();
+
+            ViewBag.FilterBrands = new SelectList(brands, "Id", "Name", filter.BrandId);
+            ViewBag.FilterCategories = new SelectList(categories, "Id", "Name", filter.CategoryId);
+            ViewBag.FilterSizes = new SelectList(sizes, "Id", "Name", filter.SizeId);
+            ViewBag.FilterColors = new SelectList(colors, "Id", "Name", filter.ColorId);
+
+            ViewBag.Filter = filter;
+            ViewBag.LowStockThreshold = LowStockThreshold;
+            ViewBag.TotalItems = totalItems;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.PageSize = PageSize;
+
+            return View("~/Views/Admin/Products/Index.cshtml", products);
+        }
+
+        // ===================== Xuất Excel =====================
+
+        // GET /Admin/Products/Export?...: xuất các sản phẩm ĐANG LỌC (không phân trang), gồm 2 sheet:
+        // Sản phẩm (mỗi sản phẩm 1 dòng) | Tồn kho (mỗi size + màu 1 dòng)
+        [HttpGet("Export")]
+        public async Task<IActionResult> Export([FromQuery] ProductFilter filter)
+        {
+            IQueryable<Product> query = _context.Products
+                .AsNoTracking()
+                .Include(p => p.Brand)
+                .Include(p => p.Category)
+                .Include(p => p.ProductVariants).ThenInclude(v => v.Size)
+                .Include(p => p.ProductVariants).ThenInclude(v => v.Color)
+                .AsSplitQuery();
+
+            var products = await ApplyFilter(query, filter)
+                .OrderBy(p => p.Name)
+                .ThenBy(p => p.Id)
+                .ToListAsync();
+
+            // Đã bán (không tính đơn huỷ) theo từng sản phẩm, 1 câu SQL
+            var productIds = products.Select(p => p.Id).ToList();
+            var soldByProduct = await _context.OrderDetails
+                .Where(d => d.Order!.Status != OrderStatuses.Cancelled && productIds.Contains(d.ProductVariant!.ProductId))
+                .GroupBy(d => d.ProductVariant!.ProductId)
+                .Select(g => new { ProductId = g.Key, Sold = g.Sum(d => d.Quantity) })
+                .ToDictionaryAsync(x => x.ProductId, x => x.Sold);
+
+            string StockLabel(int quantity) => quantity == 0 ? "Hết hàng"
+                : quantity <= LowStockThreshold ? "Sắp hết" : "Còn hàng";
+
+            var book = new XlsxWorkbook();
+
+            // ----- Sheet 1: Sản phẩm -----
+            var productSheet = book.AddSheet("Sản phẩm", new[] { 7d, 36d, 14d, 16d, 14d, 11d, 10d, 12d, 10d, 12d });
+            productSheet.AddHeader("Mã SP", "Tên sản phẩm", "Thương hiệu", "Danh mục", "Giá bán", "Trạng thái",
+                "Tồn kho", "Tình trạng", "Đã bán", "Ngày tạo");
+            foreach (var p in products)
+            {
+                var stock = p.ProductVariants.Sum(v => v.Quantity);
+                productSheet.AddRow(
+                    XlsxCell.Number(p.Id),
+                    p.Name,
+                    p.Brand?.Name,
+                    p.Category?.Name,
+                    XlsxCell.Money(p.Price),
+                    p.Status ? "Đang bán" : "Đang ẩn",
+                    XlsxCell.Number(stock),
+                    StockLabel(stock),
+                    XlsxCell.Number(soldByProduct.GetValueOrDefault(p.Id)),
+                    XlsxCell.Date(p.CreatedAt));
+            }
+            productSheet.AddRow(
+                XlsxCell.Text($"Tổng: {products.Count} sản phẩm", XlsxStyle.Bold),
+                XlsxCell.Text("", XlsxStyle.Bold), XlsxCell.Text("", XlsxStyle.Bold), XlsxCell.Text("", XlsxStyle.Bold),
+                XlsxCell.Text("", XlsxStyle.Bold), XlsxCell.Text("", XlsxStyle.Bold),
+                XlsxCell.Number(products.Sum(p => p.ProductVariants.Sum(v => v.Quantity)), XlsxStyle.BoldInteger),
+                XlsxCell.Text("", XlsxStyle.Bold),
+                XlsxCell.Number(soldByProduct.Values.Sum(), XlsxStyle.BoldInteger),
+                XlsxCell.Text("", XlsxStyle.Bold));
+
+            // ----- Sheet 2: Tồn kho theo size + màu -----
+            var stockSheet = book.AddSheet("Tồn kho theo size-màu", new[] { 7d, 36d, 14d, 14d, 8d, 10d, 12d });
+            stockSheet.AddHeader("Mã SP", "Tên sản phẩm", "Thương hiệu", "Màu", "Size", "Số lượng", "Tình trạng");
+            foreach (var p in products)
+            {
+                // Size là chữ ("39", "40.5") nên sắp xếp theo giá trị số
+                var variants = p.ProductVariants
+                    .OrderBy(v => v.Color?.Name)
+                    .ThenBy(v => double.TryParse(v.Size?.Name, System.Globalization.NumberStyles.Any,
+                        System.Globalization.CultureInfo.InvariantCulture, out var size) ? size : double.MaxValue);
+
+                foreach (var v in variants)
+                {
+                    stockSheet.AddRow(
+                        XlsxCell.Number(p.Id),
+                        p.Name,
+                        p.Brand?.Name,
+                        v.Color?.Name,
+                        v.Size?.Name,
+                        XlsxCell.Number(v.Quantity),
+                        StockLabel(v.Quantity));
+                }
+            }
+
+            var fileName = $"san-pham-ton-kho_{DateTime.Now:yyyyMMdd-HHmm}.xlsx";
+            return File(book.ToBytes(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+        }
+
+        // Ghép các điều kiện lọc vào câu truy vấn (dùng chung cho trang danh sách và xuất Excel)
+        private static IQueryable<Product> ApplyFilter(IQueryable<Product> query, ProductFilter filter)
+        {
             // ===== Ghép từng điều kiện lọc vào câu truy vấn (chỉ khi người dùng có chọn) =====
             if (!string.IsNullOrWhiteSpace(filter.Keyword))
             {
@@ -113,38 +242,7 @@ namespace ShoeStore.Controllers
                 query = query.Where(p => p.ProductVariants.Sum(v => v.Quantity) == 0);
             }
 
-            // ===== Phân trang =====
-            var totalItems = await query.CountAsync();
-            var totalPages = Math.Max(1, (int)Math.Ceiling(totalItems / (double)PageSize));
-
-            // Trang không hợp lệ (vd: ?Page=0 hoặc ?Page=999) thì kéo về trong khoảng 1..totalPages
-            filter.Page = Math.Clamp(filter.Page, 1, totalPages);
-
-            var products = await query
-                .OrderByDescending(p => p.CreatedAt)
-                .ThenByDescending(p => p.Id)
-                .Skip((filter.Page - 1) * PageSize)
-                .Take(PageSize)
-                .ToListAsync();
-
-            // ===== Dữ liệu cho các ô lọc =====
-            var brands = await _context.Brands.OrderBy(b => b.Name).ToListAsync();
-            var categories = await _context.Categories.OrderBy(c => c.Name).ToListAsync();
-            var sizes = await _context.Sizes.OrderBy(s => s.Name).ToListAsync();
-            var colors = await _context.Colors.OrderBy(c => c.Name).ToListAsync();
-
-            ViewBag.FilterBrands = new SelectList(brands, "Id", "Name", filter.BrandId);
-            ViewBag.FilterCategories = new SelectList(categories, "Id", "Name", filter.CategoryId);
-            ViewBag.FilterSizes = new SelectList(sizes, "Id", "Name", filter.SizeId);
-            ViewBag.FilterColors = new SelectList(colors, "Id", "Name", filter.ColorId);
-
-            ViewBag.Filter = filter;
-            ViewBag.LowStockThreshold = LowStockThreshold;
-            ViewBag.TotalItems = totalItems;
-            ViewBag.TotalPages = totalPages;
-            ViewBag.PageSize = PageSize;
-
-            return View("~/Views/Admin/Products/Index.cshtml", products);
+            return query;
         }
 
         [HttpGet("Create")]

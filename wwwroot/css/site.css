@@ -47,7 +47,7 @@ a {
     height: 68px;
     display: flex;
     align-items: center;
-    gap: 32px;
+    gap: 20px;
 }
 
 .site-logo {
@@ -68,7 +68,7 @@ a {
 
 .site-menu {
     display: flex;
-    gap: 6px;
+    gap: 2px;
     list-style: none;
     margin: 0;
     padding: 0;
@@ -77,7 +77,8 @@ a {
 
 .site-menu a {
     display: block;
-    padding: 8px 14px;
+    padding: 8px 12px;
+    white-space: nowrap; /* "Trang chủ" không bị gãy thành 2 dòng */
     border-radius: 999px;
     font-size: 15px;
     font-weight: 500;
@@ -93,6 +94,7 @@ a {
 }
 
 .site-admin-link {
+    white-space: nowrap;
     font-size: 14px;
     font-weight: 600;
     text-decoration: none;
@@ -151,9 +153,24 @@ a {
         display: flex;
     }
 
-    .site-actions {
-        order: -1;
+    /* Điện thoại: giỏ hàng + tài khoản nằm bên phải, nút ☰ ở cuối cùng */
+    .site-cart {
+        margin-left: auto;
+    }
+
+    .site-nav-toggle {
+        order: 3;
+        margin-left: 0;
+    }
+
+    .site-account-name,
+    .site-account-caret,
+    .site-register {
         display: none;
+    }
+
+    .site-account-btn {
+        padding: 3px;
     }
 }
 
@@ -320,6 +337,7 @@ a {
     display: flex;
     align-items: center;
     gap: 14px;
+    white-space: nowrap;
 }
 
 .site-user {
@@ -520,4 +538,100 @@ a.site-user.active {
 .hm-btn.err-btn-outline:hover {
     background: var(--ss-ink);
     color: #fff;
+}
+
+/* ===== Nút tài khoản trên header (ảnh chữ cái + tên + menu) ===== */
+.site-account-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 12px 4px 4px;
+    border: 1px solid var(--ss-line);
+    border-radius: 999px;
+    background: var(--ss-surface);
+    color: var(--ss-ink);
+    font: 600 14px var(--ss-font);
+    cursor: pointer;
+    transition: border-color 0.15s;
+}
+
+.site-account-btn:hover,
+.site-account-btn.active,
+.site-account-btn[aria-expanded="true"] {
+    border-color: var(--ss-ink);
+}
+
+.site-avatar {
+    flex: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: var(--ss-accent);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 800;
+}
+
+/* Tên dài thì cắt bớt "..." để header không bị vỡ */
+.site-account-name {
+    max-width: 130px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.site-account-caret {
+    color: var(--ss-muted);
+    transition: transform 0.15s;
+}
+
+.site-account-btn[aria-expanded="true"] .site-account-caret {
+    transform: rotate(180deg);
+}
+
+.site-account-menu {
+    min-width: 230px;
+    padding: 8px;
+    margin-top: 8px !important;
+    border: 1px solid var(--ss-line);
+    border-radius: 14px;
+    box-shadow: 0 12px 32px rgba(20, 20, 20, 0.12);
+    font-family: var(--ss-font);
+}
+
+.site-account-head {
+    padding: 6px 10px 2px;
+}
+
+.site-account-head strong,
+.site-account-head small {
+    display: block;
+    max-width: 210px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.site-account-head small {
+    color: var(--ss-muted);
+}
+
+.site-account-menu .dropdown-item {
+    display: flex;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    font-size: 14px;
+    color: var(--ss-ink-2);
+}
+
+.site-account-menu .dropdown-item:hover,
+.site-account-menu .dropdown-item:focus {
+    background: var(--ss-bg);
+    color: var(--ss-ink);
+}
+
+.site-account-menu .dropdown-divider {
+    margin: 6px 0;
+    border-color: var(--ss-line);
 }
