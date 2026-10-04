@@ -1,0 +1,137 @@
+@model ShoeStore.Models.Product
+@{
+    var variants = Model.ProductVariants
+        .OrderBy(v => v.Size?.Name)
+        .ThenBy(v => v.Color?.Name)
+        .ToList();
+    var totalStock = variants.Sum(v => v.Quantity);
+}
+
+<div class="modal fade" id="productModal-@Model.Id" tabindex="-1"
+     aria-labelledby="productModalLabel-@Model.Id" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title" id="productModalLabel-@Model.Id">
+                    Chi tiết sản phẩm #@Model.Id
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+
+            <div class="modal-body">
+                <div class="row g-4">
+
+                    <div class="col-md-5 text-center">
+                        @if (!string.IsNullOrEmpty(Model.Image))
+                        {
+                            <img src="@Model.Image" alt="@Model.Name"
+                                 class="img-fluid rounded border"
+                                 style="max-height: 300px; object-fit: cover;" />
+                        }
+                        else
+                        {
+                            <div class="border rounded p-5 text-muted">Chưa có ảnh</div>
+                        }
+                    </div>
+
+                    <div class="col-md-7">
+                        <h4 class="mb-2">@Model.Name</h4>
+
+                        <div class="mb-3">
+                            @if (Model.Status)
+                            {
+                                <span class="badge bg-success">Đang bán</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Ẩn</span>
+                            }
+                        </div>
+
+                        <table class="table table-sm table-borderless mb-0">
+                            <tr>
+                                <th class="text-muted fw-normal" style="width: 120px;">Giá</th>
+                                <td class="fw-bold text-danger">@Model.Price.ToString("N0") ₫</td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted fw-normal">Thương hiệu</th>
+                                <td>@Model.Brand?.Name</td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted fw-normal">Danh mục</th>
+                                <td>@Model.Category?.Name</td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted fw-normal">Tổng tồn kho</th>
+                                <td>@totalStock đôi</td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted fw-normal">Ngày tạo</th>
+                                <td>@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+                <hr />
+
+                <h6>Mô tả</h6>
+                @if (!string.IsNullOrEmpty(Model.Description))
+                {
+                    <p style="white-space: pre-line;">@Model.Description</p>
+                }
+                else
+                {
+                    <p class="text-muted">Không có mô tả</p>
+                }
+
+                <h6 class="mt-3">Size, màu sắc và tồn kho</h6>
+                @if (variants.Count == 0)
+                {
+                    <p class="text-muted">Chưa có size/màu nào</p>
+                }
+                else
+                {
+                    <table class="table table-bordered table-sm align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Size</th>
+                                <th>Màu sắc</th>
+                                <th>Số lượng</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var variant in variants)
+                            {
+                                <tr>
+                                    <td>@variant.Size?.Name</td>
+                                    <td>@variant.Color?.Name</td>
+                                    <td>
+                                        @if (variant.Quantity > 0)
+                                        {
+                                            @variant.Quantity
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-danger">Hết hàng</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+
+            <div class="modal-footer">
+                <a asp-controller="Products" asp-action="Edit" asp-route-id="@Model.Id"
+                   class="btn btn-warning">
+                    Sửa sản phẩm
+                </a>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+
+        </div>
+    </div>
+</div>

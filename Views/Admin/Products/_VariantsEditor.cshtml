@@ -1,0 +1,86 @@
+@model ShoeStore.Models.Product
+@{
+    var sizes = (List<ShoeStore.Models.Size>)ViewBag.Sizes;
+    var colors = (List<ShoeStore.Models.Color>)ViewBag.Colors;
+    var variants = Model.ProductVariants.ToList();
+
+    // Vẽ 1 dòng size/màu/số lượng. index là số thứ tự dòng: 0, 1, 2... (hoặc "__index__" cho dòng mẫu)
+    async Task VariantRow(string index, int sizeId, int colorId, int quantity)
+    {
+        <tr class="variant-row">
+            <td>
+                <select name="ProductVariants[@index].SizeId" class="form-select"
+                        required data-msg-required="Vui lòng chọn size">
+                    <option value="">-- Chọn size --</option>
+                    @foreach (var size in sizes)
+                    {
+                        <option value="@size.Id" selected="@(size.Id == sizeId)">@size.Name</option>
+                    }
+                </select>
+                @Html.ValidationMessage($"ProductVariants[{index}].SizeId", "", new { @class = "text-danger" })
+            </td>
+            <td>
+                <select name="ProductVariants[@index].ColorId" class="form-select"
+                        required data-msg-required="Vui lòng chọn màu">
+                    <option value="">-- Chọn màu --</option>
+                    @foreach (var color in colors)
+                    {
+                        <option value="@color.Id" selected="@(color.Id == colorId)">@color.Name</option>
+                    }
+                </select>
+                @Html.ValidationMessage($"ProductVariants[{index}].ColorId", "", new { @class = "text-danger" })
+            </td>
+            <td>
+                <input type="number" name="ProductVariants[@index].Quantity" value="@quantity"
+                       min="0" class="form-control"
+                       required data-msg-required="Vui lòng nhập số lượng"
+                       data-msg-min="Số lượng không được nhỏ hơn 0" />
+                @Html.ValidationMessage($"ProductVariants[{index}].Quantity", "", new { @class = "text-danger" })
+            </td>
+            <td class="text-center">
+                <button type="button" class="btn btn-outline-danger btn-sm btn-remove-variant" title="Xóa dòng này">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </td>
+        </tr>
+    }
+}
+
+<div class="mb-3">
+    <label class="form-label">Size, màu sắc và số lượng</label>
+
+    @if (sizes.Count == 0 || colors.Count == 0)
+    {
+        <div class="alert alert-warning">
+            Chưa có size hoặc màu sắc trong database. Hãy thêm size và màu trước.
+        </div>
+    }
+
+    <table class="table table-bordered align-middle mb-2">
+        <thead class="table-light">
+            <tr>
+                <th>Size</th>
+                <th>Màu sắc</th>
+                <th style="width: 180px;">Số lượng</th>
+                <th style="width: 70px;"></th>
+            </tr>
+        </thead>
+        <tbody id="variantRows">
+            @for (var i = 0; i < variants.Count; i++)
+            {
+                await VariantRow(i.ToString(), variants[i].SizeId, variants[i].ColorId, variants[i].Quantity);
+            }
+        </tbody>
+    </table>
+
+    @Html.ValidationMessage("ProductVariants", "", new { @class = "text-danger d-block mb-2" })
+
+    <button type="button" id="addVariantRow" class="btn btn-outline-primary btn-sm">
+        <i class="bi bi-plus-lg"></i> Thêm size / màu
+    </button>
+
+    @* Dòng mẫu: JavaScript sẽ sao chép dòng này mỗi khi bấm "Thêm size / màu" *@
+    <template id="variantRowTemplate">
+        @{ await VariantRow("__index__", 0, 0, 0); }
+    </template>
+</div>

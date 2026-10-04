@@ -3090,19 +3090,19 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\trung\\.nuget\\packages\\": {}
+    "C:\\Users\\Admin\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\trung\\Desktop\\ShoeStore\\ShoeStore.csproj",
+      "projectUniqueName": "C:\\Users\\Admin\\Desktop\\web\\ShoeStore\\ShoeStore.csproj",
       "projectName": "ShoeStore",
-      "projectPath": "C:\\Users\\trung\\Desktop\\ShoeStore\\ShoeStore.csproj",
-      "packagesPath": "C:\\Users\\trung\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\trung\\Desktop\\ShoeStore\\obj\\",
+      "projectPath": "C:\\Users\\Admin\\Desktop\\web\\ShoeStore\\ShoeStore.csproj",
+      "packagesPath": "C:\\Users\\Admin\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\Admin\\Desktop\\web\\ShoeStore\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "C:\\Users\\trung\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        "C:\\Users\\Admin\\AppData\\Roaming\\NuGet\\NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net10.0"

@@ -9,12 +9,11 @@ namespace ShoeStore.Models
         public int ProductId { get; set; }
 
         public Product? Product { get; set; }
-
+        [Range(1, int.MaxValue, ErrorMessage = "Vui lòng chọn size")]
         public int SizeId { get; set; }
 
         public Size? Size { get; set; }
-
-        public int ColorId { get; set; }
+        [Range(1, int.MaxValue, ErrorMessage = "Vui lòng chọn màu")] public int ColorId { get; set; }
 
         public Color? Color { get; set; }
 

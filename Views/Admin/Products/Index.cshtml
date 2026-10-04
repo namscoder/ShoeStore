@@ -1,0 +1,425 @@
+@model IEnumerable<ShoeStore.Models.Product>
+
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Quản lý sản phẩm";
+
+    var filter = (ShoeStore.Models.ProductFilter)ViewBag.Filter;
+    var lowStock = (int)ViewBag.LowStockThreshold;
+    var totalItems = (int)ViewBag.TotalItems;
+    var totalPages = (int)ViewBag.TotalPages;
+    var pageSize = (int)ViewBag.PageSize;
+
+    // Vị trí sản phẩm đầu/cuối đang hiển thị, vd: "Hiển thị 11–20 / 35"
+    var fromItem = totalItems == 0 ? 0 : (filter.Page - 1) * pageSize + 1;
+    var toItem = Math.Min(filter.Page * pageSize, totalItems);
+
+    // Chỉ hiện tối đa 5 số trang quanh trang hiện tại: « 1 … 4 5 [6] 7 8 … 20 »
+    var startPage = Math.Max(1, filter.Page - 2);
+    var endPage = Math.Min(totalPages, filter.Page + 2);
+
+    // Địa chỉ trang hiện tại (kèm bộ lọc + số trang) để quay lại sau khi Ẩn/Hiện, Xoá
+    var currentUrl = Context.Request.Path + Context.Request.QueryString;
+
+    // Điều kiện lọc nào đang được dùng => ô lọc đó hiện sẵn khi tải trang
+    var active = new Dictionary<string, bool>
+    {
+        ["keyword"] = !string.IsNullOrWhiteSpace(filter.Keyword),
+        ["brand"] = filter.BrandId.HasValue,
+        ["category"] = filter.CategoryId.HasValue,
+        ["size"] = filter.SizeId.HasValue,
+        ["color"] = filter.ColorId.HasValue,
+        ["status"] = !string.IsNullOrEmpty(filter.Status),
+        ["stock"] = !string.IsNullOrEmpty(filter.Stock),
+        ["price"] = filter.MinPrice.HasValue || filter.MaxPrice.HasValue
+    };
+    var activeCount = active.Count(x => x.Value);
+}
+
+<div class="container-fluid">
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">
+            @TempData["SuccessMessage"]
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger">
+            @TempData["ErrorMessage"]
+        </div>
+    }
+
+    <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+        <a asp-controller="Products" asp-action="Create" class="btn btn-primary">
+            Thêm sản phẩm
+        </a>
+
+        @* Nút mở/đóng khung bộ lọc *@
+        <button type="button" class="btn btn-outline-primary"
+                data-bs-toggle="collapse" data-bs-target="#filterPanel"
+                aria-expanded="@(activeCount > 0 ? "true" : "false")" aria-controls="filterPanel">
+            <i class="bi bi-funnel"></i> Bộ lọc
+            @if (activeCount > 0)
+            {
+                <span class="badge bg-primary ms-1">@activeCount</span>
+            }
+        </button>
+
+        @if (filter.IsFiltering)
+        {
+            <a asp-controller="Products" asp-action="Index" class="btn btn-outline-secondary">
+                <i class="bi bi-x-lg"></i> Xóa lọc
+            </a>
+        }
+
+        <span class="ms-auto text-muted">
+            @if (totalItems > 0)
+            {
+                <text>Hiển thị <strong>@fromItem–@toItem</strong> / <strong>@totalItems</strong> sản phẩm</text>
+            }
+            else
+            {
+                <text>Tìm thấy <strong>0</strong> sản phẩm</text>
+            }
+        </span>
+    </div>
+
+    @* ===== Khung bộ lọc: ẩn sẵn, đang lọc thì mở sẵn ===== *@
+    <div class="collapse @(activeCount > 0 ? "show" : "")" id="filterPanel">
+        <form id="productFilterForm" asp-controller="Products" asp-action="Index" method="get"
+              class="card card-body mb-3">
+
+            <div class="d-flex flex-wrap align-items-center gap-2">
+                <div class="dropdown" id="addFilterDropdown">
+                    <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-plus-lg"></i> Thêm điều kiện lọc
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li data-add-filter="keyword" hidden="@active["keyword"]"><button type="button" class="dropdown-item">Tên sản phẩm</button></li>
+                        <li data-add-filter="brand" hidden="@active["brand"]"><button type="button" class="dropdown-item">Thương hiệu</button></li>
+                        <li data-add-filter="category" hidden="@active["category"]"><button type="button" class="dropdown-item">Danh mục</button></li>
+                        <li data-add-filter="size" hidden="@active["size"]"><button type="button" class="dropdown-item">Size</button></li>
+                        <li data-add-filter="color" hidden="@active["color"]"><button type="button" class="dropdown-item">Màu sắc</button></li>
+                        <li data-add-filter="status" hidden="@active["status"]"><button type="button" class="dropdown-item">Trạng thái</button></li>
+                        <li data-add-filter="stock" hidden="@active["stock"]"><button type="button" class="dropdown-item">Tồn kho</button></li>
+                        <li data-add-filter="price" hidden="@active["price"]"><button type="button" class="dropdown-item">Khoảng giá</button></li>
+                    </ul>
+                </div>
+
+                <span id="filterEmptyHint" class="text-muted small">
+                    Bấm "Thêm điều kiện lọc" để chọn muốn lọc theo gì.
+                </span>
+            </div>
+
+            @* Mỗi ô lọc nằm trong .filter-field, chưa chọn thì bị ẩn (hidden) *@
+            <div class="row g-3 mt-0">
+                <div class="filter-field col-12 col-md-6 col-xl-3" data-filter="keyword" hidden="@(!active["keyword"])">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <label class="form-label small text-muted mb-0">Tên sản phẩm</label>
+                        <button type="button" class="btn-close" style="font-size: .6rem;"
+                                data-remove-filter="keyword" aria-label="Bỏ lọc tên"></button>
+                    </div>
+                    <input type="text" name="Keyword" value="@filter.Keyword"
+                           class="form-control" placeholder="Nhập tên cần tìm..." />
+                </div>
+
+                <div class="filter-field col-12 col-md-6 col-xl-3" data-filter="brand" hidden="@(!active["brand"])">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <label class="form-label small text-muted mb-0">Thương hiệu</label>
+                        <button type="button" class="btn-close" style="font-size: .6rem;"
+                                data-remove-filter="brand" aria-label="Bỏ lọc thương hiệu"></button>
+                    </div>
+                    <select name="BrandId" asp-items="ViewBag.FilterBrands" class="form-select">
+                        <option value="">-- Tất cả --</option>
+                    </select>
+                </div>
+
+                <div class="filter-field col-12 col-md-6 col-xl-3" data-filter="category" hidden="@(!active["category"])">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <label class="form-label small text-muted mb-0">Danh mục</label>
+                        <button type="button" class="btn-close" style="font-size: .6rem;"
+                                data-remove-filter="category" aria-label="Bỏ lọc danh mục"></button>
+                    </div>
+                    <select name="CategoryId" asp-items="ViewBag.FilterCategories" class="form-select">
+                        <option value="">-- Tất cả --</option>
+                    </select>
+                </div>
+
+                <div class="filter-field col-12 col-md-6 col-xl-3" data-filter="size" hidden="@(!active["size"])">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <label class="form-label small text-muted mb-0">Size</label>
+                        <button type="button" class="btn-close" style="font-size: .6rem;"
+                                data-remove-filter="size" aria-label="Bỏ lọc size"></button>
+                    </div>
+                    <select name="SizeId" asp-items="ViewBag.FilterSizes" class="form-select">
+                        <option value="">-- Tất cả --</option>
+                    </select>
+                </div>
+
+                <div class="filter-field col-12 col-md-6 col-xl-3" data-filter="color" hidden="@(!active["color"])">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <label class="form-label small text-muted mb-0">Màu sắc</label>
+                        <button type="button" class="btn-close" style="font-size: .6rem;"
+                                data-remove-filter="color" aria-label="Bỏ lọc màu sắc"></button>
+                    </div>
+                    <select name="ColorId" asp-items="ViewBag.FilterColors" class="form-select">
+                        <option value="">-- Tất cả --</option>
+                    </select>
+                </div>
+
+                <div class="filter-field col-12 col-md-6 col-xl-3" data-filter="status" hidden="@(!active["status"])">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <label class="form-label small text-muted mb-0">Trạng thái</label>
+                        <button type="button" class="btn-close" style="font-size: .6rem;"
+                                data-remove-filter="status" aria-label="Bỏ lọc trạng thái"></button>
+                    </div>
+                    <select name="Status" class="form-select">
+                        <option value="">-- Tất cả --</option>
+                        <option value="active" selected="@(filter.Status == "active")">Đang bán</option>
+                        <option value="hidden" selected="@(filter.Status == "hidden")">Đang ẩn</option>
+                    </select>
+                </div>
+
+                <div class="filter-field col-12 col-md-6 col-xl-3" data-filter="stock" hidden="@(!active["stock"])">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <label class="form-label small text-muted mb-0">Tồn kho</label>
+                        <button type="button" class="btn-close" style="font-size: .6rem;"
+                                data-remove-filter="stock" aria-label="Bỏ lọc tồn kho"></button>
+                    </div>
+                    <select name="Stock" class="form-select">
+                        <option value="">-- Tất cả --</option>
+                        <option value="in" selected="@(filter.Stock == "in")">Còn hàng</option>
+                        <option value="low" selected="@(filter.Stock == "low")">Sắp hết (≤ @lowStock đôi)</option>
+                        <option value="out" selected="@(filter.Stock == "out")">Hết hàng</option>
+                    </select>
+                </div>
+
+                <div class="filter-field col-12 col-md-6 col-xl-3" data-filter="price" hidden="@(!active["price"])">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <label class="form-label small text-muted mb-0">Khoảng giá (₫)</label>
+                        <button type="button" class="btn-close" style="font-size: .6rem;"
+                                data-remove-filter="price" aria-label="Bỏ lọc giá"></button>
+                    </div>
+                    <div class="input-group">
+                        <input type="number" name="MinPrice" value="@filter.MinPrice?.ToString("0")"
+                               min="0" class="form-control no-spinner" placeholder="Từ" />
+                        <span class="input-group-text">–</span>
+                        <input type="number" name="MaxPrice" value="@filter.MaxPrice?.ToString("0")"
+                               min="0" class="form-control no-spinner" placeholder="Đến" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-3">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-lg"></i> Áp dụng
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div class="table-responsive">
+    <table class="table table-bordered table-hover align-middle">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Ảnh</th>
+                <th>Tên sản phẩm</th>
+                <th>Giá</th>
+                <th>Thương hiệu</th>
+                <th>Danh mục</th>
+                <th>Size</th>
+                <th>Tồn kho</th>
+                <th>Ngày tạo</th>
+                <th>Trạng thái</th>
+                <th>Thao tác</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            @if (!Model.Any())
+            {
+                <tr>
+                    <td colspan="11" class="text-center text-muted">
+                        @(filter.IsFiltering ? "Không tìm thấy sản phẩm phù hợp với bộ lọc" : "Chưa có sản phẩm nào")
+                    </td>
+                </tr>
+            }
+
+            @foreach (var product in Model)
+            {
+                var totalStock = product.ProductVariants.Sum(v => v.Quantity);
+                var sizeNames = product.ProductVariants
+                    .Select(v => v.Size?.Name)
+                    .Distinct()
+                    .OrderBy(name => name);
+
+                <tr>
+                    <td>@product.Id</td>
+
+                    <td>
+                        @if (!string.IsNullOrEmpty(product.Image))
+                        {
+                            <img src="@product.Image" alt="@product.Name"
+                                 style="width: 60px; height: 60px; object-fit: cover;" />
+                        }
+                        else
+                        {
+                            <span class="text-muted">Chưa có ảnh</span>
+                        }
+                    </td>
+
+                    <td>@product.Name</td>
+
+                    <td>@product.Price.ToString("N0") ₫</td>
+
+                    <td>@product.Brand?.Name</td>
+
+                    <td>@product.Category?.Name</td>
+
+                    <td>
+                        @if (sizeNames.Any())
+                        {
+                            @string.Join(", ", sizeNames)
+                        }
+                        else
+                        {
+                            <span class="text-muted">Chưa có</span>
+                        }
+                    </td>
+
+                    <td>
+                        @if (totalStock == 0)
+                        {
+                            <span class="badge bg-danger">Hết hàng</span>
+                        }
+                        else if (totalStock <= lowStock)
+                        {
+                            <span class="badge bg-warning text-dark">Sắp hết: @totalStock đôi</span>
+                        }
+                        else
+                        {
+                            <span>@totalStock đôi</span>
+                        }
+                    </td>
+
+                    <td>@product.CreatedAt.ToString("dd/MM/yyyy")</td>
+
+                    <td>
+                        @if (product.Status)
+                        {
+                            <span class="badge bg-success">Đang bán</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">Ẩn</span>
+                        }
+                    </td>
+
+                    <td class="text-nowrap">
+                        <button type="button" class="btn btn-info btn-sm"
+                                data-bs-toggle="modal" data-bs-target="#productModal-@product.Id">
+                            Chi tiết
+                        </button>
+
+                        <a asp-controller="Products" asp-action="Edit" asp-route-id="@product.Id"
+                           class="btn btn-warning btn-sm">
+                            Sửa
+                        </a>
+
+                        <form asp-controller="Products" asp-action="ToggleStatus" asp-route-id="@product.Id"
+                              method="post" class="d-inline">
+                            <input type="hidden" name="returnUrl" value="@currentUrl" />
+                            @if (product.Status)
+                            {
+                                <button type="submit" class="btn btn-secondary btn-sm">Ẩn</button>
+                            }
+                            else
+                            {
+                                <button type="submit" class="btn btn-success btn-sm">Hiện</button>
+                            }
+                        </form>
+
+                        <form asp-controller="Products" asp-action="Delete" asp-route-id="@product.Id"
+                              method="post" class="d-inline">
+                            <input type="hidden" name="returnUrl" value="@currentUrl" />
+                            <button type="submit" class="btn btn-danger btn-sm"
+                                    onclick="return confirm('Bạn có chắc chắn muốn xóa sản phẩm này không?');">
+                                Xóa
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    </div>
+
+    @* ===== Phân trang ===== *@
+    @if (totalPages > 1)
+    {
+        <nav aria-label="Phân trang sản phẩm">
+            <ul class="pagination justify-content-center">
+
+                <li class="page-item @(filter.Page == 1 ? "disabled" : "")">
+                    <a class="page-link" asp-controller="Products" asp-action="Index"
+                       asp-all-route-data="@filter.ToRouteValues(filter.Page - 1)" aria-label="Trang trước">
+                        &laquo;
+                    </a>
+                </li>
+
+                @if (startPage > 1)
+                {
+                    <li class="page-item">
+                        <a class="page-link" asp-controller="Products" asp-action="Index"
+                           asp-all-route-data="@filter.ToRouteValues(1)">1</a>
+                    </li>
+                    @if (startPage > 2)
+                    {
+                        <li class="page-item disabled"><span class="page-link">…</span></li>
+                    }
+                }
+
+                @for (var i = startPage; i <= endPage; i++)
+                {
+                    <li class="page-item @(i == filter.Page ? "active" : "")">
+                        <a class="page-link" asp-controller="Products" asp-action="Index"
+                           asp-all-route-data="@filter.ToRouteValues(i)">@i</a>
+                    </li>
+                }
+
+                @if (endPage < totalPages)
+                {
+                    @if (endPage < totalPages - 1)
+                    {
+                        <li class="page-item disabled"><span class="page-link">…</span></li>
+                    }
+                    <li class="page-item">
+                        <a class="page-link" asp-controller="Products" asp-action="Index"
+                           asp-all-route-data="@filter.ToRouteValues(totalPages)">@totalPages</a>
+                    </li>
+                }
+
+                <li class="page-item @(filter.Page == totalPages ? "disabled" : "")">
+                    <a class="page-link" asp-controller="Products" asp-action="Index"
+                       asp-all-route-data="@filter.ToRouteValues(filter.Page + 1)" aria-label="Trang sau">
+                        &raquo;
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    }
+</div>
+
+@* Hộp chi tiết của từng sản phẩm (ẩn sẵn, bấm nút "Chi tiết" mới hiện) *@
+@foreach (var product in Model)
+{
+    <partial name="~/Views/Admin/Products/_ProductDetailModal.cshtml" model="product" />
+}
+
+@section Scripts {
+    <script src="~/js/product-filter.js" asp-append-version="true"></script>
+}

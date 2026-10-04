@@ -10,8 +10,8 @@ namespace ShoeStore.Models
         [StringLength(200)]
         public string Name { get; set; } = string.Empty;
 
-        [Range(0, double.MaxValue, ErrorMessage = "Giá phải lớn hơn hoặc bằng 0")]
-        public decimal Price { get; set; }
+        [Required(ErrorMessage = "Giá không được để trống")]
+        [Range(1, double.MaxValue, ErrorMessage = "Giá phải lớn hơn 0")]        public decimal Price { get; set; }
 
         public string? Description { get; set; }
 
@@ -22,12 +22,14 @@ namespace ShoeStore.Models
         public bool Status { get; set; } = true;
 
         // Foreign Key
+        [Range(1, int.MaxValue, ErrorMessage = "Vui lòng chọn thương hiệu")]
         public int BrandId { get; set; }
 
         // Navigation Property
         public Brand? Brand { get; set; }
 
         // Foreign Key
+        [Range(1, int.MaxValue, ErrorMessage = "Vui lòng chọn danh mục")]
         public int CategoryId { get; set; }
 
         // Navigation Property
