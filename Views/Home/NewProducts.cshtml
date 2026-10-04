@@ -1,0 +1,43 @@
+@model HomeViewModel
+
+<!-- ============ SẢN PHẨM MỚI ============ -->
+<section class="hm-section" id="san-pham-moi">
+    <div class="hm-section-head">
+        <div>
+            <span class="hm-eyebrow">Mới nhất</span>
+            <h2>Sản phẩm mới</h2>
+        </div>
+
+        @if (Model.NewProducts.Any())
+        {
+            <div class="hm-tabs" role="tablist">
+                <button type="button" class="hm-tab active" data-filter="all">Tất cả</button>
+                @foreach (var c in Model.Categories.Where(c => Model.NewProducts.Any(p => p.CategoryId == c.Id)))
+                {
+                    <button type="button" class="hm-tab" data-filter="@c.Id">@c.Name</button>
+                }
+            </div>
+        }
+    </div>
+
+    @if (!Model.NewProducts.Any())
+    {
+        <div class="hm-empty">
+            <span>👟</span>
+            <h3>Chưa có sản phẩm nào</h3>
+            <p>Sản phẩm sẽ hiện ở đây khi được thêm và bật "Đang bán" trong trang quản trị.</p>
+            <a asp-controller="Products" asp-action="Create" class="hm-btn hm-btn-primary">Thêm sản phẩm</a>
+        </div>
+    }
+    else
+    {
+        <div class="hm-grid">
+            @foreach (var p in Model.NewProducts)
+            {
+                <partial name="ProductCard" model="p" />
+            }
+        </div>
+
+        <p class="hm-grid-empty" hidden>Chưa có sản phẩm mới trong danh mục này.</p>
+    }
+</section>

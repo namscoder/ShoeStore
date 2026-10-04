@@ -1,0 +1,29 @@
+@model HomeViewModel
+@{
+    var categoryIcons = new[] { "🏃", "👟", "🥾", "👞", "🩴", "⚽", "🏀", "👠" };
+}
+
+<!-- ============ DANH MỤC ============ -->
+@if (Model.Categories.Any())
+{
+    <section class="hm-section" id="danh-muc">
+        <div class="hm-section-head">
+            <div>
+                <span class="hm-eyebrow">Danh mục</span>
+                <h2>Bạn đang tìm giày gì?</h2>
+            </div>
+        </div>
+
+        <div class="hm-categories">
+            @for (var i = 0; i < Model.Categories.Count; i++)
+            {
+                var c = Model.Categories[i];
+                <a href="#san-pham-moi" class="hm-category" data-filter-link="@c.Id">
+                    <span class="hm-category-icon">@categoryIcons[i % categoryIcons.Length]</span>
+                    <strong>@c.Name</strong>
+                    <span>@c.ProductCount sản phẩm</span>
+                </a>
+            }
+        </div>
+    </section>
+}

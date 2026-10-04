@@ -1,0 +1,95 @@
+@* Thẻ một sản phẩm. Dùng chung cho trang chủ (NewProducts) và trang thương hiệu (Brand) *@
+@model Product
+@using System.Globalization
+@{
+    var vi = new CultureInfo("vi-VN");
+    string FormatPrice(decimal price) => price.ToString("N0", vi) + "₫";
+
+    // Sắp xếp size: số trước (38, 39, 40...), chữ sau (S, M, L...)
+    List<string> SortedSizes(Product p) => p.ProductVariants
+        .Where(v => v.Size != null)
+        .Select(v => v.Size!.Name)
+        .Distinct()
+        .OrderBy(s => decimal.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out _) ? 0 : 1)
+        .ThenBy(s => decimal.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out var n) ? n : 0)
+        .ThenBy(s => s)
+        .ToList();
+
+    var stock = Model.ProductVariants.Sum(v => v.Quantity);
+    var sizes = SortedSizes(Model);
+    var colors = Model.ProductVariants.Where(v => v.Color != null).Select(v => v.Color!.Name).Distinct().ToList();
+    var isNew = Model.CreatedAt >= DateTime.Now.AddDays(-14);
+
+    // Chỉ có khi thẻ được gọi từ mục "Bán chạy" (truyền qua view-data)
+    var rank = ViewData["Rank"] as int?;
+    var sold = ViewData["SoldQuantity"] as int?;
+}
+
+<article class="hm-card @(stock == 0 ? "is-soldout" : "")" data-category="@Model.CategoryId">
+    @* Link phủ toàn bộ thẻ -> trang chi tiết *@
+    <a class="hm-card-link" asp-controller="Home" asp-action="Detail" asp-route-id="@Model.Id" aria-label="@Model.Name"></a>
+
+    <div class="hm-card-img">
+        @if (!string.IsNullOrEmpty(Model.Image))
+        {
+            <img src="@Model.Image" alt="@Model.Name" loading="lazy" />
+        }
+        else
+        {
+            <span class="hm-card-noimg">👟</span>
+        }
+
+        <div class="hm-badges">
+            @if (rank.HasValue)
+            {
+                <span class="hm-badge hm-badge-rank">#@rank Bán chạy</span>
+            }
+            @if (stock == 0)
+            {
+                <span class="hm-badge hm-badge-dark">Hết hàng</span>
+            }
+            else if (isNew && !rank.HasValue)
+            {
+                <span class="hm-badge">Mới</span>
+            }
+            @if (stock > 0 && stock <= 5)
+            {
+                <span class="hm-badge hm-badge-light">Còn @stock đôi</span>
+            }
+        </div>
+    </div>
+
+    <div class="hm-card-body">
+        <div class="hm-card-meta">
+            <span>@Model.Brand?.Name</span>
+            <span>@Model.Category?.Name</span>
+        </div>
+        <h3 title="@Model.Name">@Model.Name</h3>
+
+        @if (sizes.Any())
+        {
+            <div class="hm-sizes">
+                @foreach (var s in sizes.Take(5))
+                {
+                    <span>@s</span>
+                }
+                @if (sizes.Count > 5)
+                {
+                    <span class="more">+@(sizes.Count - 5)</span>
+                }
+            </div>
+        }
+
+        <div class="hm-card-foot">
+            <strong class="hm-price">@FormatPrice(Model.Price)</strong>
+            @if (sold.HasValue)
+            {
+                <span class="hm-sold">Đã bán @sold</span>
+            }
+            else if (colors.Any())
+            {
+                <span class="hm-colors" title="@string.Join(", ", colors)">@colors.Count màu</span>
+            }
+        </div>
+    </div>
+</article>

@@ -1,0 +1,25 @@
+@* Footer trang khách hàng. Được gọi trong _Layout.cshtml *@
+
+<footer class="site-footer">
+    <div class="site-footer-inner">
+        <div class="site-footer-brand">
+            <a class="site-logo" asp-controller="Home" asp-action="Index">SHOE<span>STORE</span></a>
+            <p>Giày chính hãng cho mỗi bước chân — đi làm, đi chơi hay ra sân.</p>
+        </div>
+        <div class="site-footer-col">
+            <h4>Mua sắm</h4>
+            <a asp-controller="Home" asp-action="Index" asp-fragment="san-pham-moi">Sản phẩm mới</a>
+            <a asp-controller="Home" asp-action="Index" asp-fragment="danh-muc">Danh mục</a>
+            <a asp-controller="Home" asp-action="Index" asp-fragment="thuong-hieu">Thương hiệu</a>
+        </div>
+        <div class="site-footer-col">
+            <h4>Hỗ trợ</h4>
+            <a asp-controller="Home" asp-action="Privacy">Chính sách bảo mật</a>
+            <span>Hotline: 1900 0000</span>
+            <span>Email: hotro@shoestore.vn</span>
+        </div>
+    </div>
+    <div class="site-footer-bottom">
+        &copy; @DateTime.Now.Year ShoeStore. All rights reserved.
+    </div>
+</footer>

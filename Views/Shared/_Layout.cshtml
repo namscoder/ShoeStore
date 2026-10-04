@@ -1,3 +1,10 @@
+<<<<<<< HEAD
+=======
+﻿@{
+    // Trang nào đặt ViewData["FullWidth"] = true sẽ không bị bó trong .container (vd: trang chủ)
+    var fullWidth = ViewData["FullWidth"] as bool? == true;
+}
+>>>>>>> 34681fc5dc4fd22ab8edeb93d626d86e27eb8482
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -5,11 +12,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - ShoeStore</title>
     <script type="importmap"></script>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/ShoeStore.styles.css" asp-append-version="true" />
+    <partial name="Home/_Styles" />
+    @await RenderSectionAsync("Styles", required: false)
 </head>
 <body>
+<<<<<<< HEAD
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
             <div class="container-fluid">
@@ -75,18 +82,27 @@
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button>
                 </div>
             }
+=======
+    <partial name="Home/_Header" />
+
+    @if (fullWidth)
+    {
+        <main role="main">
+>>>>>>> 34681fc5dc4fd22ab8edeb93d626d86e27eb8482
             @RenderBody()
         </main>
-    </div>
-
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - ShoeStore - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+    }
+    else
+    {
+        <div class="container py-4">
+            <main role="main" class="pb-3">
+                @RenderBody()
+            </main>
         </div>
-    </footer>
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
+    }
+
+    <partial name="Home/_Footer" />
+    <partial name="Home/_Scripts" />
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

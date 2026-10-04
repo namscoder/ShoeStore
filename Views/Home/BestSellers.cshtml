@@ -1,0 +1,30 @@
+@model HomeViewModel
+
+<!-- ============ SẢN PHẨM BÁN CHẠY ============ -->
+@* Chỉ hiện khi đã có đơn hàng (không tính đơn đã huỷ) *@
+@if (Model.BestSellers.Any())
+{
+    <section class="hm-section" id="ban-chay">
+        <div class="hm-section-head">
+            <div>
+                <span class="hm-eyebrow">Được yêu thích</span>
+                <h2>Sản phẩm bán chạy</h2>
+            </div>
+            <a href="#san-pham-moi" class="hm-section-link">Xem sản phẩm mới →</a>
+        </div>
+
+        <div class="hm-grid">
+            @for (var i = 0; i < Model.BestSellers.Count; i++)
+            {
+                var item = Model.BestSellers[i];
+                var cardData = new ViewDataDictionary(ViewData)
+                {
+                    { "Rank", i + 1 },
+                    { "SoldQuantity", item.SoldQuantity }
+                };
+
+                <partial name="ProductCard" model="item.Product" view-data="cardData" />
+            }
+        </div>
+    </section>
+}

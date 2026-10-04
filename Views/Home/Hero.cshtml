@@ -1,0 +1,44 @@
+@model HomeViewModel
+
+<!-- ============ HERO ============ -->
+<section class="hm-hero">
+    <div class="hm-hero-inner">
+        <div class="hm-hero-text">
+            <span class="hm-eyebrow">Bộ sưu tập @DateTime.Now.Year</span>
+            <h1>Bước đi<br />theo cách <em>của bạn.</em></h1>
+            <p>
+                Giày chính hãng từ những thương hiệu bạn yêu thích —
+                đủ size, đủ màu, giao tận nơi.
+            </p>
+            <div class="hm-hero-cta">
+                <a href="#san-pham-moi" class="hm-btn hm-btn-primary">Mua ngay</a>
+                <a href="#thuong-hieu" class="hm-btn hm-btn-ghost">Xem thương hiệu</a>
+            </div>
+            <dl class="hm-stats">
+                <div><dt>@Model.TotalProducts</dt><dd>Mẫu giày</dd></div>
+                <div><dt>@Model.Brands.Count</dt><dd>Thương hiệu</dd></div>
+                <div><dt>@Model.Categories.Count</dt><dd>Danh mục</dd></div>
+            </dl>
+        </div>
+
+        <div class="hm-hero-art" aria-hidden="true">
+            <div class="hm-hero-ring"></div>
+            <svg class="hm-hero-shoe" viewBox="0 0 420 220" xmlns="http://www.w3.org/2000/svg">
+                <path d="M30 150 C30 120 60 112 92 104 L150 88 C170 60 196 40 222 40 C236 40 242 52 250 66 C266 92 300 104 344 112 C380 119 398 134 398 156 L398 166 L30 166 Z" fill="#fff" />
+                <path d="M222 40 C236 40 242 52 250 66 C266 92 300 104 344 112 C380 119 398 134 398 156 L300 156 C262 156 236 132 214 104 Z" fill="#ff5a1f" />
+                <path d="M30 166 L398 166 L398 178 C398 188 390 194 380 194 L44 194 C36 194 30 188 30 180 Z" fill="#141414" />
+                <path d="M30 156 L398 156 L398 166 L30 166 Z" fill="#e8e3d8" />
+                <g stroke="#141414" stroke-width="5" stroke-linecap="round">
+                    <line x1="170" y1="78" x2="196" y2="96" />
+                    <line x1="182" y1="66" x2="208" y2="84" />
+                    <line x1="196" y1="54" x2="220" y2="72" />
+                </g>
+                <path d="M70 136 C120 126 170 126 214 140" stroke="#141414" stroke-width="5" fill="none" stroke-linecap="round" />
+            </svg>
+            <div class="hm-hero-tag">
+                <span>Hàng mới về</span>
+                <strong>Mỗi tuần</strong>
+            </div>
+        </div>
+    </div>
+</section>

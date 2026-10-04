@@ -1,0 +1,76 @@
+@model BrandPageViewModel
+@{
+    ViewData["Title"] = Model.Brand.Name;
+    ViewData["FullWidth"] = true;
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/home.css" asp-append-version="true" />
+}
+
+<!-- ============ ĐẦU TRANG THƯƠNG HIỆU ============ -->
+<section class="hm-brand-hero">
+    <div class="hm-brand-hero-inner">
+        <nav class="hm-breadcrumb" aria-label="breadcrumb">
+            <a asp-controller="Home" asp-action="Index">Trang chủ</a>
+            <span>/</span>
+            <a asp-controller="Home" asp-action="Index" asp-fragment="thuong-hieu">Thương hiệu</a>
+            <span>/</span>
+            <span>@Model.Brand.Name</span>
+        </nav>
+
+        <h1>@Model.Brand.Name</h1>
+
+        @if (!string.IsNullOrWhiteSpace(Model.Brand.Description))
+        {
+            <p>@Model.Brand.Description</p>
+        }
+
+        <span class="hm-brand-count">@Model.Products.Count sản phẩm đang bán</span>
+    </div>
+</section>
+
+<!-- ============ SẢN PHẨM CỦA THƯƠNG HIỆU ============ -->
+<section class="hm-section">
+    @if (!Model.Products.Any())
+    {
+        <div class="hm-empty">
+            <span>👟</span>
+            <h3>Chưa có sản phẩm</h3>
+            <p>@Model.Brand.Name hiện chưa có sản phẩm nào đang bán. Bạn quay lại sau nhé!</p>
+            <a asp-controller="Home" asp-action="Index" class="hm-btn hm-btn-primary">Về trang chủ</a>
+        </div>
+    }
+    else
+    {
+        <div class="hm-grid">
+            @foreach (var p in Model.Products)
+            {
+                <partial name="ProductCard" model="p" />
+            }
+        </div>
+    }
+</section>
+
+<!-- ============ THƯƠNG HIỆU KHÁC ============ -->
+@if (Model.OtherBrands.Any())
+{
+    <section class="hm-section">
+        <div class="hm-section-head">
+            <div>
+                <span class="hm-eyebrow">Khám phá thêm</span>
+                <h2>Thương hiệu khác</h2>
+            </div>
+        </div>
+
+        <div class="hm-brands">
+            @foreach (var b in Model.OtherBrands)
+            {
+                <a class="hm-brand" asp-controller="Home" asp-action="Brand" asp-route-id="@b.Id">
+                    <strong>@b.Name</strong>
+                    <span>@b.ProductCount sản phẩm</span>
+                </a>
+            }
+        </div>
+    </section>
+}

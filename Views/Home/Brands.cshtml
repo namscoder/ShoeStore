@@ -1,0 +1,24 @@
+@model HomeViewModel
+
+<!-- ============ THƯƠNG HIỆU ============ -->
+@if (Model.Brands.Any())
+{
+    <section class="hm-section" id="thuong-hieu">
+        <div class="hm-section-head">
+            <div>
+                <span class="hm-eyebrow">Thương hiệu</span>
+                <h2>Những cái tên bạn tin dùng</h2>
+            </div>
+        </div>
+
+        <div class="hm-brands">
+            @foreach (var b in Model.Brands)
+            {
+                <a class="hm-brand" title="@b.Description" asp-controller="Home" asp-action="Brand" asp-route-id="@b.Id">
+                    <strong>@b.Name</strong>
+                    <span>@b.ProductCount sản phẩm</span>
+                </a>
+            }
+        </div>
+    </section>
+}

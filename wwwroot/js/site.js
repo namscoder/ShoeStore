@@ -1,4 +1,19 @@
-﻿// Please see documentation at https://learn.microsoft.com/aspnet/core/client-side/bundling-and-minification
-// for details on configuring this project to bundle and minify static web assets.
+// Mở / đóng menu trên điện thoại
+document.addEventListener("DOMContentLoaded", function () {
+    var toggle = document.querySelector("[data-nav-toggle]");
+    var menu = document.querySelector("[data-nav-menu]");
+    if (!toggle || !menu) return;
 
-// Write your JavaScript code.
+    toggle.addEventListener("click", function () {
+        var open = menu.classList.toggle("open");
+        toggle.setAttribute("aria-expanded", open ? "true" : "false");
+    });
+
+    // Bấm vào một mục thì đóng menu
+    menu.querySelectorAll("a").forEach(function (link) {
+        link.addEventListener("click", function () {
+            menu.classList.remove("open");
+            toggle.setAttribute("aria-expanded", "false");
+        });
+    });
+});
