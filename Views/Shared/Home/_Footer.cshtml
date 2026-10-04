@@ -1,22 +1,43 @@
-@* Footer trang khách hàng. Được gọi trong _Layout.cshtml *@
+@* Footer trang khách hàng. Được gọi trong _Layout.cshtml. Số hotline / email lấy từ Models/StoreInfo.cs *@
 
 <footer class="site-footer">
     <div class="site-footer-inner">
         <div class="site-footer-brand">
             <a class="site-logo" asp-controller="Home" asp-action="Index">SHOE<span>STORE</span></a>
             <p>Giày chính hãng cho mỗi bước chân — đi làm, đi chơi hay ra sân.</p>
+            <ul class="site-footer-perks">
+                <li>🚚 Miễn phí giao hàng toàn quốc</li>
+                <li>💵 Thanh toán khi nhận hàng (COD)</li>
+            </ul>
         </div>
         <div class="site-footer-col">
             <h4>Mua sắm</h4>
-            <a asp-controller="Home" asp-action="Index" asp-fragment="san-pham-moi">Sản phẩm mới</a>
+            <a asp-controller="Shop" asp-action="Index">Tất cả sản phẩm</a>
+            <a asp-controller="Shop" asp-action="Index" asp-route-Sort="newest">Sản phẩm mới</a>
+            <a asp-controller="Shop" asp-action="Index" asp-route-Sort="bestseller">Bán chạy</a>
             <a asp-controller="Home" asp-action="Index" asp-fragment="danh-muc">Danh mục</a>
             <a asp-controller="Home" asp-action="Index" asp-fragment="thuong-hieu">Thương hiệu</a>
         </div>
         <div class="site-footer-col">
+            <h4>Tài khoản</h4>
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                <a asp-controller="Profile" asp-action="Index">Tài khoản của tôi</a>
+                <a asp-controller="Order" asp-action="Index">Đơn hàng của tôi</a>
+            }
+            else
+            {
+                <a asp-controller="Account" asp-action="Login">Đăng nhập</a>
+                <a asp-controller="Account" asp-action="Register">Đăng ký</a>
+            }
+            <a asp-controller="Cart" asp-action="Index">Giỏ hàng</a>
+        </div>
+        <div class="site-footer-col">
             <h4>Hỗ trợ</h4>
+            <a href="tel:@StoreInfo.HotlineTel">Hotline: @StoreInfo.Hotline</a>
+            <a href="mailto:@StoreInfo.Email">Email: @StoreInfo.Email</a>
+            <span>Giờ làm việc: @StoreInfo.WorkingHours</span>
             <a asp-controller="Home" asp-action="Privacy">Chính sách bảo mật</a>
-            <span>Hotline: 1900 0000</span>
-            <span>Email: hotro@shoestore.vn</span>
         </div>
     </div>
     <div class="site-footer-bottom">

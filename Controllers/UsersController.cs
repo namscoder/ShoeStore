@@ -223,7 +223,7 @@ namespace ShoeStore.Controllers
             await _context.SaveChangesAsync();
 
             TempData["SuccessMessage"] = $"Đã cập nhật tài khoản \"{user.Username}\"" +
-                (passwordReset ? " (đã đặt lại mật khẩu)" : "");
+                (passwordReset ? ". Đã đặt lại mật khẩu: hãy báo khách đăng nhập rồi vào Tài khoản → Đổi mật khẩu để tự đặt mật khẩu mới." : "");
             return RedirectToAction(nameof(Index));
         }
 

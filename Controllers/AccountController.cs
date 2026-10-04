@@ -84,6 +84,16 @@ namespace ShoeStore.Controllers
             return RedirectAfterLogin(returnUrl, user.Role);
         }
 
+        // ===================== QUÊN MẬT KHẨU =====================
+
+        // Chưa gửi email tự động: hướng dẫn khách liên hệ cửa hàng,
+        // admin xác minh rồi đặt lại mật khẩu trong trang Quản trị > Người dùng > Sửa
+        [HttpGet("quen-mat-khau")]
+        public IActionResult ForgotPassword()
+        {
+            return View();
+        }
+
         // ===================== ĐĂNG KÝ =====================
 
         [HttpGet]

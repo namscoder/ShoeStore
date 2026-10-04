@@ -1,25 +1,30 @@
-﻿@model ErrorViewModel
+@model ErrorViewModel
+@* Trang lỗi 500 khi code bị lỗi (chỉ dùng khi chạy Production; lúc Development sẽ hiện chi tiết lỗi cho lập trình viên) *@
 @{
-    ViewData["Title"] = "Error";
+    ViewData["Title"] = "Đã có lỗi xảy ra";
 }
 
-<h1 class="text-danger">Error.</h1>
-<h2 class="text-danger">An error occurred while processing your request.</h2>
+<div class="err-page">
+    <div class="err-code">500</div>
+    <div class="err-icon">⚠️</div>
+    <h1>Đã có lỗi xảy ra</h1>
+    <p>Hệ thống đang gặp sự cố khi xử lý yêu cầu của bạn. Vui lòng thử lại sau ít phút.</p>
 
-@if (Model.ShowRequestId)
-{
-    <p>
-        <strong>Request ID:</strong> <code>@Model.RequestId</code>
+    <div class="err-actions">
+        <a class="hm-btn hm-btn-primary" asp-controller="Home" asp-action="Index">Về trang chủ</a>
+        <a class="hm-btn err-btn-outline" href="javascript:history.back()">Quay lại</a>
+    </div>
+
+    <p class="err-help">
+        Nếu lỗi lặp lại, hãy gọi <a href="tel:@StoreInfo.HotlineTel">@StoreInfo.Hotline</a>
+        @if (Model.ShowRequestId)
+        {
+            <br />
+            <small>Mã lỗi để cửa hàng tra cứu: <code>@Model.RequestId</code></small>
+        }
     </p>
-}
+</div>
 
-<h3>Development Mode</h3>
-<p>
-    Swapping to <strong>Development</strong> environment will display more detailed information about the error that occurred.
-</p>
-<p>
-    <strong>The Development environment shouldn't be enabled for deployed applications.</strong>
-    It can result in displaying sensitive information from exceptions to end users.
-    For local debugging, enable the <strong>Development</strong> environment by setting the <strong>ASPNETCORE_ENVIRONMENT</strong> environment variable to <strong>Development</strong>
-    and restarting the app.
-</p>
+@section Styles {
+    <link rel="stylesheet" href="~/css/home.css" asp-append-version="true" />
+}

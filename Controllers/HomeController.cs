@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ShoeStore.Data;
@@ -221,6 +222,29 @@ namespace ShoeStore.Controllers
             {
                 RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier
             });
+        }
+
+        // Trang lỗi 404 / 403 / 400... cùng giao diện web.
+        // Program.cs: app.UseStatusCodePagesWithReExecute("/loi/{0}") => mọi phản hồi lỗi KHÔNG có nội dung
+        // (vd: return NotFound(), gõ sai địa chỉ) sẽ được chạy lại vào đây để hiện trang đẹp.
+        [Route("loi/{code:int}")]
+        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+        public IActionResult StatusCodePage(int code)
+        {
+            // Thiếu file tĩnh (ảnh, css, js...) thì chỉ trả mã lỗi, không cần dựng cả trang HTML
+            var reExecute = HttpContext.Features.Get<IStatusCodeReExecuteFeature>();
+            if (reExecute != null && Path.HasExtension(reExecute.OriginalPath))
+            {
+                return StatusCode(code);
+            }
+
+            if (code < 400 || code > 599)
+            {
+                code = 404;
+            }
+
+            Response.StatusCode = code;
+            return View("StatusCode", code);
         }
     }
 }

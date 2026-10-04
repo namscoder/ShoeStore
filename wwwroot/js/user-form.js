@@ -15,4 +15,12 @@
             event.preventDefault();
         }
     });
+
+    // Mở từ nút 🔑 "Đặt lại mật khẩu" ở danh sách (link có #dat-lai-mat-khau) => con trỏ vào sẵn ô mật khẩu mới
+    if (location.hash === "#dat-lai-mat-khau") {
+        const password = form.querySelector('[name="Password"]');
+        if (password) {
+            password.focus();
+        }
+    }
 })();

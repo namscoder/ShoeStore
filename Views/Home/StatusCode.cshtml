@@ -1,0 +1,46 @@
+@model int
+@* Trang lỗi 404 / 403 / 400... (HomeController.StatusCodePage). Model = mã lỗi *@
+@{
+    var (icon, title, message) = Model switch
+    {
+        404 => ("👟", "Không tìm thấy trang",
+                "Trang bạn tìm có thể đã bị xoá, đổi địa chỉ hoặc chưa từng tồn tại. Kiểm tra lại đường dẫn hoặc tìm sản phẩm bên dưới nhé."),
+        403 => ("🔒", "Bạn không có quyền xem trang này",
+                "Trang này chỉ dành cho tài khoản có quyền phù hợp."),
+        400 => ("⏳", "Phiên làm việc đã hết hạn",
+                "Trang bạn gửi đi đã quá cũ hoặc không hợp lệ. Hãy quay lại, tải lại trang (F5) rồi thử lại."),
+        _ => ("⚠️", "Đã có lỗi xảy ra",
+                "Hệ thống đang gặp sự cố. Vui lòng thử lại sau ít phút.")
+    };
+
+    ViewData["Title"] = title;
+}
+
+<div class="err-page">
+    <div class="err-code">@Model</div>
+    <div class="err-icon">@icon</div>
+    <h1>@title</h1>
+    <p>@message</p>
+
+    @if (Model == 404)
+    {
+        <form class="err-search" asp-controller="Shop" asp-action="Index" method="get" role="search">
+            <input type="search" name="Q" placeholder="Tìm giày theo tên, thương hiệu..." aria-label="Tìm kiếm sản phẩm" />
+            <button type="submit">Tìm</button>
+        </form>
+    }
+
+    <div class="err-actions">
+        <a class="hm-btn hm-btn-primary" asp-controller="Home" asp-action="Index">Về trang chủ</a>
+        <a class="hm-btn err-btn-outline" asp-controller="Shop" asp-action="Index">Xem sản phẩm</a>
+    </div>
+
+    <p class="err-help">
+        Cần hỗ trợ? Gọi <a href="tel:@StoreInfo.HotlineTel">@StoreInfo.Hotline</a>
+        hoặc email <a href="mailto:@StoreInfo.Email">@StoreInfo.Email</a>
+    </p>
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/home.css" asp-append-version="true" />
+}

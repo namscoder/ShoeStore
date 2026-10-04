@@ -62,6 +62,9 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+// Lỗi 404, 403, 400... không có nội dung => hiện trang lỗi cùng giao diện web (HomeController.StatusCodePage)
+app.UseStatusCodePagesWithReExecute("/loi/{0}");
+
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
