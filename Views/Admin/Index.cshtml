@@ -18,6 +18,10 @@
     var chartTotalAmount = Model.Last14Days.Sum(d => d.Amount);
 }
 
+@section Styles {
+    <link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
+}
+
 <div class="container-fluid">
     <div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-4">
         <div>
