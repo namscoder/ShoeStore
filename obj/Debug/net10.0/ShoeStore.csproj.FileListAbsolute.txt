@@ -373,9 +373,7 @@ C:\Users\Admin\Desktop\web\ShoeStore\obj\Debug\net10.0\scopedcss\Views\Shared\_L
 C:\Users\Admin\Desktop\web\ShoeStore\obj\Debug\net10.0\scopedcss\bundle\ShoeStore.styles.css
 C:\Users\Admin\Desktop\web\ShoeStore\obj\Debug\net10.0\scopedcss\projectbundle\ShoeStore.bundle.scp.css
 C:\Users\Admin\Desktop\web\ShoeStore\obj\Debug\net10.0\compressed\ca5ia8d9qw-{0}-8t60w0xuao-8t60w0xuao.gz
-C:\Users\Admin\Desktop\web\ShoeStore\obj\Debug\net10.0\compressed\eqatwo9q56-{0}-2nzjlyevks-2nzjlyevks.gz
 C:\Users\Admin\Desktop\web\ShoeStore\obj\Debug\net10.0\compressed\otf35sph99-{0}-61n19gt1b8-61n19gt1b8.gz
-C:\Users\Admin\Desktop\web\ShoeStore\obj\Debug\net10.0\compressed\duemh6tvc7-{0}-xtxxf3hu2r-xtxxf3hu2r.gz
 C:\Users\Admin\Desktop\web\ShoeStore\obj\Debug\net10.0\compressed\3jc5ygalee-{0}-t1cqhe9u97-t1cqhe9u97.gz
 C:\Users\Admin\Desktop\web\ShoeStore\obj\Debug\net10.0\compressed\f32q9ftksd-{0}-c2jlpeoesf-c2jlpeoesf.gz
 C:\Users\Admin\Desktop\web\ShoeStore\obj\Debug\net10.0\compressed\50w81ge2tz-{0}-sejl45xvog-sejl45xvog.gz
@@ -699,3 +697,9 @@ C:\Users\trung\Desktop\ShoeStore\obj\Debug\net10.0\compressed\oemu2e8fp5-{0}-3it
 C:\Users\trung\Desktop\ShoeStore\obj\Debug\net10.0\compressed\d6c36il6qc-{0}-und183f3kz-und183f3kz.gz
 C:\Users\trung\Desktop\ShoeStore\obj\Debug\net10.0\compressed\duemh6tvc7-{0}-xnwrnlo31f-xnwrnlo31f.gz
 C:\Users\trung\Desktop\ShoeStore\obj\Debug\net10.0\compressed\eqatwo9q56-{0}-rpctasofqn-rpctasofqn.gz
+C:\Users\Admin\Desktop\web\ShoeStore\obj\Debug\net10.0\compressed\6606m89g69-{0}-fcz2axxt11-fcz2axxt11.gz
+C:\Users\Admin\Desktop\web\ShoeStore\obj\Debug\net10.0\compressed\4c4oh6olz8-{0}-u4q4eqtqcd-u4q4eqtqcd.gz
+C:\Users\Admin\Desktop\web\ShoeStore\obj\Debug\net10.0\compressed\eqatwo9q56-{0}-rpctasofqn-rpctasofqn.gz
+C:\Users\Admin\Desktop\web\ShoeStore\obj\Debug\net10.0\compressed\axid1ms2ec-{0}-yg7thccz0x-yg7thccz0x.gz
+C:\Users\Admin\Desktop\web\ShoeStore\obj\Debug\net10.0\compressed\dd4oqwuqet-{0}-rwfhjgrow1-rwfhjgrow1.gz
+C:\Users\Admin\Desktop\web\ShoeStore\obj\Debug\net10.0\compressed\duemh6tvc7-{0}-xnwrnlo31f-xnwrnlo31f.gz
