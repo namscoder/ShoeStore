@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -6,6 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <!-- Ảnh người dùng upload không phải mã nguồn: không build, không theo dõi -->
     <DefaultItemExcludes>$(DefaultItemExcludes);wwwroot\images\products\**</DefaultItemExcludes>
+    <UserSecretsId>67a35e7a-9108-4508-9b0f-3acda0c65268</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>

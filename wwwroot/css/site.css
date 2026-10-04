@@ -86,3 +86,53 @@ body {
     border-radius: 5px;
     cursor: pointer;
 }
+
+/* ===== Đăng nhập / Đăng ký ===== */
+
+.auth-wrapper {
+    min-height: 70vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 0;
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 420px;
+    background: white;
+    padding: 36px 32px;
+    border-radius: 12px;
+    box-shadow: 0 3px 16px rgba(0, 0, 0, 0.08);
+}
+
+.auth-card-wide {
+    max-width: 560px;
+}
+
+.auth-title {
+    font-size: 28px;
+    font-weight: bold;
+    margin-bottom: 6px;
+}
+
+.auth-subtitle {
+    color: #6c757d;
+    margin-bottom: 24px;
+}
+
+.auth-switch {
+    text-align: center;
+    margin: 20px 0 0;
+    color: #6c757d;
+}
+
+.auth-switch a {
+    color: #222;
+    font-weight: bold;
+}
+
+.auth-icon {
+    font-size: 56px;
+    margin-bottom: 10px;
+}

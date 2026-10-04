@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ShoeStore.Data;
@@ -6,6 +7,7 @@ using System.Text.Json;
 
 namespace ShoeStore.Controllers
 {
+    [Authorize(Roles = AppRoles.Admin)]
     [Route("Admin/Brands")]
     public class BrandsController : Controller
     {
@@ -35,6 +37,7 @@ namespace ShoeStore.Controllers
                 );
         }
         [HttpPost("Create")]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Brand brand)
         {
             if (!ModelState.IsValid)
@@ -68,6 +71,7 @@ namespace ShoeStore.Controllers
             return View("~/Views/Admin/Brands/Edit.cshtml", brand);
         }
         [HttpPost("Edit/{id}")]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, Brand brand)
         {
             if (id != brand.Id)

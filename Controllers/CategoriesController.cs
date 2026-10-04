@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ShoeStore.Data;
@@ -6,6 +7,7 @@ using System.Text.Json;
 
 namespace ShoeStore.Controllers
 {
+    [Authorize(Roles = AppRoles.Admin)]
     [Route("Admin/Categories")]
     public class CategoriesController : Controller
     {
@@ -35,6 +37,7 @@ namespace ShoeStore.Controllers
                 );
         }
         [HttpPost("Create")]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Category category)
         {
             if (!ModelState.IsValid)
@@ -68,6 +71,7 @@ namespace ShoeStore.Controllers
             return View("~/Views/Admin/Categories/Edit.cshtml", category);
         }
         [HttpPost("Edit/{id}")]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, Category category)
         {
             if (id != category.Id)

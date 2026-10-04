@@ -1,3 +1,7 @@
+@{
+    var displayName = User.FindFirstValue("FullName") ?? User.Identity?.Name ?? "Admin";
+}
+
 <nav class="admin-navbar">
 
     <div class="admin-navbar-title">
@@ -10,12 +14,12 @@
     <div class="admin-user">
 
         <div class="admin-avatar">
-            A
+            @(string.IsNullOrEmpty(displayName) ? "A" : displayName.Substring(0, 1).ToUpper())
         </div>
 
         <div>
 
-            <strong>Administrator</strong>
+            <strong>@displayName</strong>
 
             <br />
 
@@ -24,6 +28,12 @@
             </small>
 
         </div>
+
+        <form asp-controller="Account" asp-action="Logout" method="post" class="ms-3">
+            <button type="submit" class="btn btn-outline-secondary btn-sm" title="Đăng xuất">
+                <i class="bi bi-box-arrow-right"></i> Đăng xuất
+            </button>
+        </form>
 
     </div>
 

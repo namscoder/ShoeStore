@@ -1,0 +1,25 @@
+@{
+    ViewData["Title"] = "Không có quyền truy cập";
+}
+
+<div class="auth-wrapper">
+    <div class="auth-card text-center">
+
+        <div class="auth-icon">🔒</div>
+
+        <h1 class="auth-title">Không có quyền truy cập</h1>
+
+        <p class="auth-subtitle">
+            Tài khoản <strong>@User.Identity?.Name</strong> không có quyền xem trang này.
+        </p>
+
+        <div class="d-flex gap-2 justify-content-center">
+            <a asp-controller="Home" asp-action="Index" class="btn btn-dark">Về trang chủ</a>
+
+            <form asp-controller="Account" asp-action="Logout" method="post">
+                <button type="submit" class="btn btn-outline-secondary">Đăng xuất</button>
+            </form>
+        </div>
+
+    </div>
+</div>
