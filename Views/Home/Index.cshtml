@@ -1,67 +1,21 @@
-﻿@{
+﻿@model HomeViewModel
+@{
     ViewData["Title"] = "Trang chủ";
+    ViewData["FullWidth"] = true;
 }
 
-<div class="hero">
-    <div class="hero-content">
-        <h1>SHOE STORE</h1>
-        <h2>Phong cách của bạn, đôi giày của bạn</h2>
-        <p>
-            Khám phá những mẫu giày mới nhất dành cho bạn.
-        </p>
+@section Styles {
+    <link rel="stylesheet" href="~/css/home.css" asp-append-version="true" />
+}
 
-        <a href="#" class="btn-shop">
-            Xem sản phẩm
-        </a>
-    </div>
-</div>
+@* Mỗi khối của trang chủ nằm trong một partial riêng ở Views/Home/ *@
+<partial name="Hero" model="Model" />
+<partial name="Perks" />
+<partial name="Categories" model="Model" />
+<partial name="BestSellers" model="Model" />
+<partial name="NewProducts" model="Model" />
+<partial name="Brands" model="Model" />
 
-<section class="products">
-    <h2>Sản phẩm nổi bật</h2>
-
-    <div class="product-list">
-
-        <div class="product-card">
-            <div class="product-image">
-                👟
-            </div>
-
-            <h3>Nike Air Force 1</h3>
-
-            <p class="price">
-                1.500.000 VNĐ
-            </p>
-
-            <button>Xem chi tiết</button>
-        </div>
-
-        <div class="product-card">
-            <div class="product-image">
-                👟
-            </div>
-
-            <h3>Adidas Campus</h3>
-
-            <p class="price">
-                1.200.000 VNĐ
-            </p>
-
-            <button>Xem chi tiết</button>
-        </div>
-
-        <div class="product-card">
-            <div class="product-image">
-                👟
-            </div>
-
-            <h3>Jordan 1</h3>
-
-            <p class="price">
-                2.500.000 VNĐ
-            </p>
-
-            <button>Xem chi tiết</button>
-        </div>
-
-    </div>
-</section>
+@section Scripts {
+    <script src="~/js/home.js" asp-append-version="true"></script>
+}

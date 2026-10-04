@@ -1,88 +1,219 @@
+/* ===== Nền tảng chung cho trang khách hàng ===== */
+:root {
+    --ss-ink: #141414;
+    --ss-ink-2: #55524c;
+    --ss-muted: #8a867e;
+    --ss-bg: #f6f4ef;
+    --ss-surface: #ffffff;
+    --ss-line: #e6e1d6;
+    --ss-accent: #ff5a1f;
+    --ss-accent-dark: #e14a12;
+    --ss-radius: 18px;
+    --ss-max: 1240px;
+    --ss-font: "Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 84px;
+}
+
 body {
     margin: 0;
-    font-family: Arial, sans-serif;
-    background-color: #f5f5f5;
+    font-family: var(--ss-font);
+    background-color: var(--ss-bg);
+    color: var(--ss-ink);
+    -webkit-font-smoothing: antialiased;
 }
 
-.hero {
-    min-height: 450px;
+a {
+    color: inherit;
+}
+
+/* ===== Header ===== */
+.site-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(246, 244, 239, 0.88);
+    backdrop-filter: saturate(160%) blur(12px);
+    border-bottom: 1px solid var(--ss-line);
+}
+
+.site-nav {
+    max-width: var(--ss-max);
+    margin: 0 auto;
+    padding: 0 24px;
+    height: 68px;
     display: flex;
     align-items: center;
-    justify-content: center;
-    text-align: center;
-    background: #222;
-    color: white;
+    gap: 32px;
 }
 
-.hero-content h1 {
-    font-size: 60px;
-    margin-bottom: 10px;
-}
-
-.hero-content h2 {
-    font-size: 28px;
-}
-
-.hero-content p {
-    font-size: 18px;
-    margin-bottom: 30px;
-}
-
-.btn-shop {
-    display: inline-block;
-    padding: 12px 25px;
-    background: white;
-    color: #222;
+.site-logo {
+    font-weight: 800;
+    font-size: 20px;
+    letter-spacing: 0.04em;
     text-decoration: none;
-    border-radius: 5px;
+    color: var(--ss-ink);
 }
 
-.products {
-    padding: 50px;
+.site-logo span {
+    color: var(--ss-accent);
+}
+
+.site-logo:hover {
+    color: var(--ss-ink);
+}
+
+.site-menu {
+    display: flex;
+    gap: 6px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    flex: 1;
+}
+
+.site-menu a {
+    display: block;
+    padding: 8px 14px;
+    border-radius: 999px;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--ss-ink-2);
+    text-decoration: none;
+    transition: background 0.15s, color 0.15s;
+}
+
+.site-menu a:hover,
+.site-menu a.active {
+    background: var(--ss-surface);
+    color: var(--ss-ink);
+}
+
+.site-admin-link {
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    padding: 9px 18px;
+    border-radius: 999px;
+    border: 1px solid var(--ss-ink);
+    transition: background 0.15s, color 0.15s;
+}
+
+.site-admin-link:hover {
+    background: var(--ss-ink);
+    color: #fff;
+}
+
+.site-nav-toggle {
+    display: none;
+    margin-left: auto;
+    width: 42px;
+    height: 42px;
+    border: 0;
+    background: transparent;
+    padding: 10px;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.site-nav-toggle span {
+    display: block;
+    height: 2px;
+    background: var(--ss-ink);
+    border-radius: 2px;
+}
+
+@media (max-width: 860px) {
+    .site-nav {
+        gap: 12px;
+    }
+
+    .site-nav-toggle {
+        display: flex;
+    }
+
+    .site-menu {
+        display: none;
+        position: absolute;
+        top: 68px;
+        left: 0;
+        right: 0;
+        flex-direction: column;
+        padding: 12px 16px 20px;
+        background: var(--ss-bg);
+        border-bottom: 1px solid var(--ss-line);
+    }
+
+    .site-menu.open {
+        display: flex;
+    }
+
+    .site-actions {
+        order: -1;
+        display: none;
+    }
+}
+
+/* ===== Footer ===== */
+.site-footer {
+    background: var(--ss-ink);
+    color: #bdb8ae;
+    margin-top: 80px;
+}
+
+.site-footer-inner {
+    max-width: var(--ss-max);
+    margin: 0 auto;
+    padding: 56px 24px 40px;
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 40px;
+}
+
+.site-footer .site-logo {
+    color: #fff;
+}
+
+.site-footer-brand p {
+    margin-top: 12px;
+    max-width: 320px;
+    line-height: 1.6;
+}
+
+.site-footer-col {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.site-footer-col h4 {
+    color: #fff;
+    font-size: 15px;
+    font-weight: 700;
+    margin: 0 0 6px;
+}
+
+.site-footer-col a {
+    text-decoration: none;
+}
+
+.site-footer-col a:hover {
+    color: #fff;
+}
+
+.site-footer-bottom {
+    border-top: 1px solid #2a2a2a;
     text-align: center;
+    padding: 18px 24px;
+    font-size: 13px;
 }
 
-.products h2 {
-    font-size: 32px;
-    margin-bottom: 30px;
-}
-
-.product-list {
-    display: flex;
-    justify-content: center;
-    gap: 30px;
-}
-
-.product-card {
-    width: 280px;
-    background: white;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-}
-
-.product-image {
-    height: 180px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 100px;
-    background: #f1f1f1;
-    border-radius: 8px;
-}
-
-.product-card h3 {
-    margin-top: 20px;
-}
-
-.price {
-    font-size: 18px;
-    font-weight: bold;
-}
-
-.product-card button {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
+@media (max-width: 720px) {
+    .site-footer-inner {
+        grid-template-columns: 1fr;
+        gap: 28px;
+    }
 }

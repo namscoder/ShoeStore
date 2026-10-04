@@ -1,0 +1,177 @@
+@model ProductDetailViewModel
+@using System.Globalization
+@using System.Text.Json
+@{
+    var p = Model.Product;
+    ViewData["Title"] = p.Name;
+    ViewData["FullWidth"] = true;
+
+    var vi = new CultureInfo("vi-VN");
+    string FormatPrice(decimal price) => price.ToString("N0", vi) + "₫";
+
+    // Danh sách biến thể cho JavaScript: chọn màu + size -> biết còn bao nhiêu đôi
+    var variantsJson = JsonSerializer.Serialize(p.ProductVariants.Select(v => new
+    {
+        id = v.Id,
+        sizeId = v.SizeId,
+        colorId = v.ColorId,
+        qty = v.Quantity
+    }));
+
+    var isNew = p.CreatedAt >= DateTime.Now.AddDays(-14);
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/home.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/detail.css" asp-append-version="true" />
+}
+
+<div class="pd-page">
+    <!-- ============ ĐƯỜNG DẪN ============ -->
+    <nav class="pd-breadcrumb" aria-label="breadcrumb">
+        <a asp-controller="Home" asp-action="Index">Trang chủ</a>
+        <span>/</span>
+        @if (p.Brand != null)
+        {
+            <a asp-controller="Home" asp-action="Brand" asp-route-id="@p.BrandId">@p.Brand.Name</a>
+            <span>/</span>
+        }
+        <span>@p.Name</span>
+    </nav>
+
+    <!-- ============ THÔNG TIN CHÍNH ============ -->
+    <div class="pd-main">
+        <div class="pd-gallery">
+            @if (!string.IsNullOrEmpty(p.Image))
+            {
+                <img src="@p.Image" alt="@p.Name" />
+            }
+            else
+            {
+                <span class="pd-noimg">👟</span>
+            }
+
+            <div class="hm-badges">
+                @if (Model.TotalStock == 0)
+                {
+                    <span class="hm-badge hm-badge-dark">Hết hàng</span>
+                }
+                else if (isNew)
+                {
+                    <span class="hm-badge">Mới</span>
+                }
+            </div>
+        </div>
+
+        <div class="pd-info">
+            <div class="pd-meta">
+                @if (p.Brand != null)
+                {
+                    <a asp-controller="Home" asp-action="Brand" asp-route-id="@p.BrandId">@p.Brand.Name</a>
+                }
+                @if (p.Category != null)
+                {
+                    <span>@p.Category.Name</span>
+                }
+            </div>
+
+            <h1>@p.Name</h1>
+
+            <div class="pd-price-row">
+                <strong class="pd-price">@FormatPrice(p.Price)</strong>
+                @if (Model.SoldQuantity > 0)
+                {
+                    <span class="pd-sold">Đã bán @Model.SoldQuantity</span>
+                }
+            </div>
+
+            @if (!string.IsNullOrWhiteSpace(p.Description))
+            {
+                <p class="pd-desc">@p.Description</p>
+            }
+
+            @if (!p.ProductVariants.Any())
+            {
+                <div class="pd-empty-variant">Sản phẩm chưa có size / màu. Vui lòng quay lại sau.</div>
+            }
+            else
+            {
+                <form class="pd-form" data-variants="@variantsJson" data-product-name="@p.Name" novalidate>
+                    <input type="hidden" name="ProductVariantId" value="" />
+
+                    <!-- Màu -->
+                    <div class="pd-option">
+                        <div class="pd-option-head">
+                            <span>Màu sắc</span>
+                            <strong data-color-label>Chưa chọn</strong>
+                        </div>
+                        <div class="pd-choices">
+                            @foreach (var c in Model.Colors)
+                            {
+                                <button type="button" class="pd-choice" data-color-id="@c.Id" data-name="@c.Name">@c.Name</button>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Size -->
+                    <div class="pd-option">
+                        <div class="pd-option-head">
+                            <span>Size</span>
+                            <strong data-size-label>Chưa chọn</strong>
+                        </div>
+                        <div class="pd-choices pd-sizes">
+                            @foreach (var s in Model.Sizes)
+                            {
+                                <button type="button" class="pd-choice" data-size-id="@s.Id" data-name="@s.Name">@s.Name</button>
+                            }
+                        </div>
+                    </div>
+
+                    <p class="pd-stock" data-stock>Chọn màu và size để xem tình trạng hàng.</p>
+
+                    <!-- Số lượng + nút mua -->
+                    <div class="pd-buy">
+                        <div class="pd-qty">
+                            <button type="button" data-qty-minus aria-label="Giảm số lượng">−</button>
+                            <input type="number" name="Quantity" value="1" min="1" max="1" data-qty aria-label="Số lượng" />
+                            <button type="button" data-qty-plus aria-label="Tăng số lượng">+</button>
+                        </div>
+                        <button type="submit" class="hm-btn hm-btn-primary pd-add" data-add disabled>Thêm vào giỏ hàng</button>
+                    </div>
+
+                    <p class="pd-note" data-note hidden></p>
+                </form>
+            }
+
+            <ul class="pd-perks">
+                <li><span>🚚</span> Giao hàng toàn quốc 2–4 ngày</li>
+                <li><span>🔄</span> Đổi size trong vòng 7 ngày</li>
+                <li><span>💵</span> Thanh toán khi nhận hàng</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- ============ SẢN PHẨM LIÊN QUAN ============ -->
+@if (Model.RelatedProducts.Any())
+{
+    <section class="hm-section">
+        <div class="hm-section-head">
+            <div>
+                <span class="hm-eyebrow">Có thể bạn thích</span>
+                <h2>Sản phẩm liên quan</h2>
+            </div>
+        </div>
+
+        <div class="hm-grid">
+            @foreach (var item in Model.RelatedProducts)
+            {
+                <partial name="ProductCard" model="item" />
+            }
+        </div>
+    </section>
+}
+
+@section Scripts {
+    <script src="~/js/detail.js" asp-append-version="true"></script>
+}

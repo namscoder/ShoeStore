@@ -1,0 +1,30 @@
+@* Header trang khách hàng: logo + menu. Được gọi trong _Layout.cshtml *@
+@{
+    var controller = ViewContext.RouteData.Values["controller"]?.ToString();
+    var action = ViewContext.RouteData.Values["action"]?.ToString();
+    var isHome = controller == "Home" && action == "Index";
+}
+
+<header class="site-header">
+    <nav class="site-nav">
+        <a class="site-logo" asp-controller="Home" asp-action="Index">
+            SHOE<span>STORE</span>
+        </a>
+
+        <button class="site-nav-toggle" type="button" aria-label="Mở menu" aria-expanded="false" data-nav-toggle>
+            <span></span><span></span><span></span>
+        </button>
+
+        <ul class="site-menu" data-nav-menu>
+            <li><a class="@(isHome ? "active" : "")" asp-controller="Home" asp-action="Index">Trang chủ</a></li>
+            <li><a asp-controller="Home" asp-action="Index" asp-fragment="san-pham-moi">Sản phẩm mới</a></li>
+            <li><a asp-controller="Home" asp-action="Index" asp-fragment="danh-muc">Danh mục</a></li>
+            <li><a asp-controller="Home" asp-action="Index" asp-fragment="thuong-hieu">Thương hiệu</a></li>
+            <li><a class="@(controller == "Home" && action == "Privacy" ? "active" : "")" asp-controller="Home" asp-action="Privacy">Chính sách</a></li>
+        </ul>
+
+        <div class="site-actions">
+            <a class="site-admin-link" asp-controller="Admin" asp-action="Index">Quản trị</a>
+        </div>
+    </nav>
+</header>

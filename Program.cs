@@ -11,6 +11,14 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 var app = builder.Build();
 
+// Thêm dữ liệu mẫu (danh mục, thương hiệu, size, màu, sản phẩm, người dùng, đơn hàng, giỏ hàng)
+// Chạy lại nhiều lần không bị trùng vì DbSeeder bỏ qua những bản ghi đã có
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    await DbSeeder.SeedAsync(db);
+}
+
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
