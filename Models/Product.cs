@@ -38,5 +38,7 @@ namespace ShoeStore.Models
         // Một Product có nhiều ProductVariant
         public ICollection<ProductVariant> ProductVariants { get; set; }
             = new List<ProductVariant>();
+
+        public ICollection<ProductImage> Images { get; set; } = new List<ProductImage>();    
     }
 }
