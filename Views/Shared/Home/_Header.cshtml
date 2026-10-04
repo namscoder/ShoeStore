@@ -1,8 +1,17 @@
 @* Header trang khách hàng: logo + menu. Được gọi trong _Layout.cshtml *@
+@inject ShoeStore.Data.ApplicationDbContext Db
+@using Microsoft.EntityFrameworkCore
 @{
     var controller = ViewContext.RouteData.Values["controller"]?.ToString();
     var action = ViewContext.RouteData.Values["action"]?.ToString();
     var isHome = controller == "Home" && action == "Index";
+
+    // Tổng số đôi trong giỏ của người đang đăng nhập (chưa đăng nhập = 0)
+    var cartCount = 0;
+    if (int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var currentUserId))
+    {
+        cartCount = await Db.CartItems.Where(c => c.UserId == currentUserId).SumAsync(c => c.Quantity);
+    }
 }
 
 <header class="site-header">
@@ -17,11 +26,36 @@
 
         <ul class="site-menu" data-nav-menu>
             <li><a class="@(isHome ? "active" : "")" asp-controller="Home" asp-action="Index">Trang chủ</a></li>
-            <li><a asp-controller="Home" asp-action="Index" asp-fragment="san-pham-moi">Sản phẩm mới</a></li>
+            <li><a class="@(controller == "Shop" ? "active" : "")" asp-controller="Shop" asp-action="Index">Sản phẩm</a></li>
             <li><a asp-controller="Home" asp-action="Index" asp-fragment="danh-muc">Danh mục</a></li>
             <li><a asp-controller="Home" asp-action="Index" asp-fragment="thuong-hieu">Thương hiệu</a></li>
             <li><a class="@(controller == "Home" && action == "Privacy" ? "active" : "")" asp-controller="Home" asp-action="Privacy">Chính sách</a></li>
+
+            @* Ô tìm kiếm trong menu (chỉ hiện trên điện thoại) *@
+            <li class="site-menu-search">
+                <form asp-controller="Shop" asp-action="Index" method="get" class="site-search">
+                    <input type="search" name="Q" placeholder="Tìm giày..." aria-label="Tìm kiếm sản phẩm" />
+                </form>
+            </li>
         </ul>
+
+        @* Ô tìm kiếm trên header (màn hình rộng) *@
+        <form asp-controller="Shop" asp-action="Index" method="get" class="site-search site-search-desktop" role="search">
+            <input type="search" name="Q" placeholder="Tìm giày..." aria-label="Tìm kiếm sản phẩm"
+                   value="@(controller == "Shop" ? Context.Request.Query["Q"].ToString() : "")" />
+        </form>
+
+        @* Giỏ hàng: luôn hiện (kể cả trên điện thoại). Chưa đăng nhập bấm vào sẽ được chuyển tới trang đăng nhập *@
+        <a class="site-cart @(controller == "Cart" ? "active" : "")" asp-controller="Cart" asp-action="Index"
+           aria-label="Giỏ hàng (@cartCount đôi)">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="9" cy="20" r="1.4" />
+                <circle cx="18" cy="20" r="1.4" />
+                <path d="M2 3h3l2.6 12.2a1.5 1.5 0 0 0 1.5 1.2h8.8a1.5 1.5 0 0 0 1.5-1.1L21 8H6.2" />
+            </svg>
+            <span class="site-cart-count" data-cart-count hidden="@(cartCount <= 0)">@cartCount</span>
+        </a>
 
         <div class="site-actions">
     @if (User.Identity?.IsAuthenticated == true)
@@ -32,9 +66,11 @@
             <a class="site-admin-link" asp-controller="Admin" asp-action="Index">Quản trị</a>
         }
 
-        <span class="site-user">
+        @* Bấm vào tên để mở trang tài khoản *@
+        <a class="site-user @(controller == "Profile" ? "active" : "")" asp-controller="Profile" asp-action="Index"
+           title="Tài khoản của tôi">
             Xin chào, <strong>@(User.FindFirstValue("FullName") ?? User.Identity.Name)</strong>
-        </span>
+        </a>
 
         <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
             <button type="submit" class="site-link-btn">Đăng xuất</button>

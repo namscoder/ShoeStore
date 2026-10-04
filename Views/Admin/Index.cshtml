@@ -1,71 +1,259 @@
+@model DashboardViewModel
+@using System.Globalization
 @{
     ViewData["Title"] = "Dashboard";
-
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
+
+    var vi = new CultureInfo("vi-VN");
+    string Money(decimal value) => value.ToString("N0", vi) + " ₫";
+
+    // Rút gọn số tiền trên thẻ: 25.400.000 => "25,4 tr"
+    string Short(decimal value) => value >= 1_000_000_000 ? (value / 1_000_000_000).ToString("0.#", vi) + " tỷ"
+        : value >= 1_000_000 ? (value / 1_000_000).ToString("0.#", vi) + " tr"
+        : value.ToString("N0", vi) + " ₫";
+
+    // Cột cao nhất của biểu đồ = 100%
+    var maxAmount = Model.Last14Days.Max(d => d.Amount);
+    var chartTotalOrders = Model.Last14Days.Sum(d => d.Orders);
+    var chartTotalAmount = Model.Last14Days.Sum(d => d.Amount);
 }
 
-<div class="mb-4">
-
-    <h2>Dashboard</h2>
-
-    <p class="text-muted">
-        Tổng quan hệ thống quản lý cửa hàng giày
-    </p>
-
-</div>
-
-
-<div class="row g-4">
-
-    <div class="col-md-3">
-
-        <div class="card p-4">
-
-            <h6>Sản phẩm</h6>
-
-            <h2>10</h2>
-
+<div class="container-fluid">
+    <div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-4">
+        <div>
+            <h2 class="mb-1">Dashboard</h2>
+            <p class="text-muted mb-0">Tổng quan cửa hàng · cập nhật lúc @DateTime.Now.ToString("HH:mm dd/MM/yyyy")</p>
         </div>
-
+        @if (Model.PendingOrders > 0)
+        {
+            <a class="btn btn-warning" asp-controller="AdminOrders" asp-action="Index" asp-route-Status="@OrderStatuses.Pending">
+                <i class="bi bi-bell"></i> @Model.PendingOrders đơn đang chờ xác nhận
+            </a>
+        }
     </div>
 
-
-    <div class="col-md-3">
-
-        <div class="card p-4">
-
-            <h6>Đơn hàng</h6>
-
-            <h2>25</h2>
-
+    @* ===================== 4 THẺ SỐ LIỆU ===================== *@
+    <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-xl-3">
+            <div class="card dash-kpi h-100">
+                <div class="dash-kpi-icon bg-success-subtle text-success"><i class="bi bi-cash-stack"></i></div>
+                <div>
+                    <div class="dash-kpi-label">Doanh thu tháng @DateTime.Today.Month</div>
+                    <div class="dash-kpi-value" title="@Money(Model.RevenueThisMonth)">@Short(Model.RevenueThisMonth)</div>
+                    <div class="dash-kpi-sub">
+                        @if (Model.RevenueGrowth is decimal growth)
+                        {
+                            <span class="@(growth >= 0 ? "text-success" : "text-danger")">
+                                <i class="bi @(growth >= 0 ? "bi-arrow-up-right" : "bi-arrow-down-right")"></i>
+                                @Math.Abs(growth).ToString("0.#", vi)%
+                            </span>
+                            <span>so với tháng trước</span>
+                        }
+                        else
+                        {
+                            <span>Tổng từ trước tới nay: @Short(Model.RevenueTotal)</span>
+                        }
+                    </div>
+                </div>
+            </div>
         </div>
 
-    </div>
-
-
-    <div class="col-md-3">
-
-        <div class="card p-4">
-
-            <h6>Khách hàng</h6>
-
-            <h2>50</h2>
-
+        <div class="col-sm-6 col-xl-3">
+            <a class="card dash-kpi h-100" asp-controller="AdminOrders" asp-action="Index">
+                <div class="dash-kpi-icon bg-primary-subtle text-primary"><i class="bi bi-receipt"></i></div>
+                <div>
+                    <div class="dash-kpi-label">Đơn hàng tháng này</div>
+                    <div class="dash-kpi-value">@Model.OrdersThisMonth</div>
+                    <div class="dash-kpi-sub">Hôm nay: <strong>@Model.OrdersToday</strong> đơn mới</div>
+                </div>
+            </a>
         </div>
 
-    </div>
-
-
-    <div class="col-md-3">
-
-        <div class="card p-4">
-
-            <h6>Doanh thu</h6>
-
-            <h2>25M</h2>
-
+        <div class="col-sm-6 col-xl-3">
+            <a class="card dash-kpi h-100" asp-controller="Users" asp-action="Index">
+                <div class="dash-kpi-icon bg-info-subtle text-info"><i class="bi bi-people"></i></div>
+                <div>
+                    <div class="dash-kpi-label">Khách hàng</div>
+                    <div class="dash-kpi-value">@Model.CustomersTotal</div>
+                    <div class="dash-kpi-sub">+@Model.NewCustomersThisMonth tài khoản mới tháng này</div>
+                </div>
+            </a>
         </div>
 
+        <div class="col-sm-6 col-xl-3">
+            <a class="card dash-kpi h-100" asp-controller="Products" asp-action="Index">
+                <div class="dash-kpi-icon bg-warning-subtle text-warning"><i class="bi bi-box-seam"></i></div>
+                <div>
+                    <div class="dash-kpi-label">Sản phẩm đang bán</div>
+                    <div class="dash-kpi-value">@Model.ActiveProducts <small class="text-muted fs-6">/ @Model.TotalProducts</small></div>
+                    <div class="dash-kpi-sub">
+                        <span class="text-danger">@Model.OutOfStockCount hết hàng</span> ·
+                        <span class="text-warning-emphasis">@Model.LowStockCount sắp hết</span>
+                    </div>
+                </div>
+            </a>
+        </div>
     </div>
 
+    <div class="row g-3 mb-4">
+        @* ===================== BIỂU ĐỒ 14 NGÀY ===================== *@
+        <div class="col-xl-8">
+            <div class="card h-100">
+                <div class="card-header bg-white d-flex flex-wrap justify-content-between gap-2">
+                    <strong>Đơn đặt 14 ngày gần nhất</strong>
+                    <span class="text-muted small">@chartTotalOrders đơn · @Money(chartTotalAmount) (không tính đơn huỷ)</span>
+                </div>
+                <div class="card-body">
+                    <div class="dash-chart">
+                        @foreach (var day in Model.Last14Days)
+                        {
+                            var height = maxAmount == 0 ? 0 : (double)(day.Amount / maxAmount) * 100;
+                            var isToday = day.Date == DateTime.Today;
+                            <div class="dash-bar-col" title="@day.Date.ToString("dd/MM"): @day.Orders đơn · @Money(day.Amount)">
+                                <span class="dash-bar-value">@(day.Orders > 0 ? day.Orders.ToString() : "")</span>
+                                <div class="dash-bar-track">
+                                    <div class="dash-bar @(isToday ? "today" : "")" style="height: @height.ToString("0.#", CultureInfo.InvariantCulture)%"></div>
+                                </div>
+                                <span class="dash-bar-label @(isToday ? "fw-bold" : "")">@(isToday ? "Hôm nay" : day.Date.ToString("dd/MM"))</span>
+                            </div>
+                        }
+                    </div>
+                    <p class="text-muted small mb-0 mt-2">Chiều cao cột = giá trị đơn trong ngày, số trên cột = số đơn. Rê chuột vào cột để xem chi tiết.</p>
+                </div>
+            </div>
+        </div>
+
+        @* ===================== ĐƠN THEO TRẠNG THÁI ===================== *@
+        <div class="col-xl-4">
+            <div class="card h-100">
+                <div class="card-header bg-white"><strong>Đơn hàng theo trạng thái</strong></div>
+                <ul class="list-group list-group-flush">
+                    @foreach (var status in OrderStatuses.All)
+                    {
+                        var count = Model.StatusCounts.GetValueOrDefault(status);
+                        <li class="list-group-item p-0">
+                            <a class="d-flex justify-content-between align-items-center px-3 py-2 text-decoration-none text-body"
+                               asp-controller="AdminOrders" asp-action="Index" asp-route-Status="@status">
+                                <span><span class="badge @OrderStatuses.BadgeClass(status) me-2">&nbsp;</span>@OrderStatuses.DisplayName(status)</span>
+                                <strong>@count</strong>
+                            </a>
+                        </li>
+                    }
+                </ul>
+                <div class="card-footer bg-white small text-muted">
+                    Doanh thu (đơn hoàn thành) từ trước tới nay: <strong class="text-success">@Money(Model.RevenueTotal)</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        @* ===================== ĐƠN MỚI NHẤT ===================== *@
+        <div class="col-xl-6">
+            <div class="card h-100">
+                <div class="card-header bg-white d-flex justify-content-between">
+                    <strong>Đơn hàng mới nhất</strong>
+                    <a class="small" asp-controller="AdminOrders" asp-action="Index">Xem tất cả →</a>
+                </div>
+                @if (!Model.RecentOrders.Any())
+                {
+                    <div class="card-body text-muted">Chưa có đơn hàng nào.</div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <tbody>
+                                @foreach (var o in Model.RecentOrders)
+                                {
+                                    <tr>
+                                        <td>
+                                            <a class="fw-semibold" asp-controller="AdminOrders" asp-action="Detail" asp-route-id="@o.Id">#@o.Id</a>
+                                            <div class="small text-muted">@o.OrderDate.ToString("HH:mm dd/MM")</div>
+                                        </td>
+                                        <td>@(o.User?.FullName ?? o.User?.Username)</td>
+                                        <td class="text-end">@Money(o.TotalAmount)</td>
+                                        <td class="text-end"><span class="badge @OrderStatuses.BadgeClass(o.Status)">@OrderStatuses.DisplayName(o.Status)</span></td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+
+        @* ===================== BÁN CHẠY ===================== *@
+        <div class="col-md-6 col-xl-3">
+            <div class="card h-100">
+                <div class="card-header bg-white"><strong>Bán chạy nhất</strong></div>
+                @if (!Model.TopProducts.Any())
+                {
+                    <div class="card-body text-muted">Chưa có sản phẩm nào được bán.</div>
+                }
+                else
+                {
+                    <ul class="list-group list-group-flush">
+                        @for (var i = 0; i < Model.TopProducts.Count; i++)
+                        {
+                            var p = Model.TopProducts[i];
+                            <li class="list-group-item d-flex align-items-center gap-2">
+                                <span class="dash-rank">@(i + 1)</span>
+                                @if (!string.IsNullOrEmpty(p.Image))
+                                {
+                                    <img class="dash-thumb" src="@p.Image" alt="" loading="lazy" />
+                                }
+                                else
+                                {
+                                    <span class="dash-thumb"></span>
+                                }
+                                <div class="flex-grow-1 min-w-0">
+                                    <a class="d-block text-truncate text-body text-decoration-none" asp-controller="Products" asp-action="Edit" asp-route-id="@p.ProductId" title="@p.Name">@p.Name</a>
+                                    <small class="text-muted">@p.Sold đôi · @Short(p.Revenue)</small>
+                                </div>
+                            </li>
+                        }
+                    </ul>
+                }
+            </div>
+        </div>
+
+        @* ===================== SẮP HẾT HÀNG ===================== *@
+        <div class="col-md-6 col-xl-3">
+            <div class="card h-100">
+                <div class="card-header bg-white d-flex justify-content-between">
+                    <strong>Cần nhập thêm hàng</strong>
+                    <a class="small" asp-controller="Products" asp-action="Index" asp-route-Stock="low">Xem →</a>
+                </div>
+                @if (!Model.LowStockProducts.Any())
+                {
+                    <div class="card-body text-muted">
+                        <i class="bi bi-check-circle text-success"></i> Tất cả sản phẩm đều còn trên @Model.LowStockThreshold đôi.
+                    </div>
+                }
+                else
+                {
+                    <ul class="list-group list-group-flush">
+                        @foreach (var p in Model.LowStockProducts)
+                        {
+                            <li class="list-group-item d-flex align-items-center gap-2">
+                                @if (!string.IsNullOrEmpty(p.Image))
+                                {
+                                    <img class="dash-thumb" src="@p.Image" alt="" loading="lazy" />
+                                }
+                                else
+                                {
+                                    <span class="dash-thumb"></span>
+                                }
+                                <a class="flex-grow-1 text-truncate text-body text-decoration-none" asp-controller="Products" asp-action="Edit" asp-route-id="@p.ProductId" title="@p.Name">@p.Name</a>
+                                <span class="badge @(p.Quantity == 0 ? "bg-danger" : "bg-warning text-dark")">
+                                    @(p.Quantity == 0 ? "Hết" : $"Còn {p.Quantity}")
+                                </span>
+                            </li>
+                        }
+                    </ul>
+                }
+            </div>
+        </div>
+    </div>
 </div>

@@ -46,7 +46,7 @@
         </div>
 
         <div class="mb-3">
-            <label for="imageFile" class="form-label">Ảnh sản phẩm</label>
+            <label for="imageFile" class="form-label">Ảnh đại diện</label>
 
             <div class="mb-2">
                 <img id="imagePreview"
@@ -70,8 +70,11 @@
             @Html.ValidationMessage("ImageFile", "", new { @class = "text-danger" })
         </div>
 
-        @* 👉 MỚI: bảng size, màu sắc và số lượng (dùng chung với trang Thêm) *@
+        @* Bảng size, màu sắc và số lượng (dùng chung với trang Thêm) *@
         <partial name="~/Views/Admin/Products/_VariantsEditor.cshtml" model="Model" />
+
+        @* Thư viện ảnh: ảnh cũ (có thể xoá) + thêm ảnh mới, chia theo ảnh chung / từng màu *@
+        <partial name="~/Views/Admin/Products/_ImageGalleryEditor.cshtml" model="Model" />
 
         <div class="mb-3">
             <label asp-for="Description" class="form-label">Mô tả</label>
@@ -99,8 +102,11 @@
     <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.21.0/dist/jquery.validate.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jquery-validation-unobtrusive@4.0.0/dist/jquery.validate.unobtrusive.min.js"></script>
 
-    @* 👉 MỚI: xử lý nút thêm/xoá dòng size, màu *@
+    @* Xử lý nút thêm/xoá dòng size, màu *@
     <script src="~/js/product-variants.js" asp-append-version="true"></script>
+
+    @* Thư viện ảnh: xoá ảnh cũ, thêm ảnh mới theo nhóm *@
+    <script src="~/js/product-images.js" asp-append-version="true"></script>
 
     <script>
         // ===== Luật 1: kiểm tra đuôi file =====

@@ -5,6 +5,26 @@
         .ThenBy(v => v.Color?.Name)
         .ToList();
     var totalStock = variants.Sum(v => v.Quantity);
+
+    // Thư viện ảnh chia nhóm: "Ảnh chung" trước, sau đó từng màu (theo tên màu), trong nhóm theo SortOrder
+    var imageGroups = Model.Images
+        .GroupBy(i => i.ColorId)
+        .OrderBy(g => g.Key.HasValue)
+        .ThenBy(g => g.First().Color?.Name)
+        .Select(g => new
+        {
+            Title = g.Key.HasValue ? "Màu " + g.First().Color?.Name : "Ảnh chung",
+            Images = g.OrderBy(i => i.SortOrder).ToList()
+        })
+        .ToList();
+
+    // Ảnh lớn ban đầu: ảnh đại diện, nếu không có thì lấy ảnh đầu tiên trong thư viện
+    var mainImage = !string.IsNullOrEmpty(Model.Image)
+        ? Model.Image
+        : imageGroups.SelectMany(g => g.Images).Select(i => i.ImageUrl).FirstOrDefault();
+
+    var totalImages = (string.IsNullOrEmpty(Model.Image) ? 0 : 1) + Model.Images.Count;
+    const string thumbStyle = "width: 52px; height: 52px; object-fit: cover; cursor: pointer;";
 }
 
 <div class="modal fade" id="productModal-@Model.Id" tabindex="-1"
@@ -22,16 +42,45 @@
             <div class="modal-body">
                 <div class="row g-4">
 
-                    <div class="col-md-5 text-center">
-                        @if (!string.IsNullOrEmpty(Model.Image))
+                    <div class="col-md-5">
+                        @if (mainImage != null)
                         {
-                            <img src="@Model.Image" alt="@Model.Name"
-                                 class="img-fluid rounded border"
-                                 style="max-height: 300px; object-fit: cover;" />
+                            <img src="@mainImage" alt="@Model.Name" loading="lazy" data-role="main-image"
+                                 class="rounded border w-100 mb-2 bg-light"
+                                 style="height: 280px; object-fit: contain;" />
                         }
                         else
                         {
-                            <div class="border rounded p-5 text-muted">Chưa có ảnh</div>
+                            <div class="border rounded p-5 text-muted text-center">Chưa có ảnh</div>
+                        }
+
+                        @* Ảnh nhỏ: bấm vào để xem lớn ở khung phía trên *@
+                        @if (totalImages > 1)
+                        {
+                            <div class="small">
+                                @if (!string.IsNullOrEmpty(Model.Image))
+                                {
+                                    <div class="text-muted mb-1">Ảnh đại diện</div>
+                                    <div class="d-flex flex-wrap gap-1 mb-2">
+                                        <img src="@Model.Image" alt="Ảnh đại diện" loading="lazy"
+                                             data-gallery-src="@Model.Image"
+                                             class="rounded border border-2 border-primary" style="@thumbStyle" />
+                                    </div>
+                                }
+
+                                @foreach (var group in imageGroups)
+                                {
+                                    <div class="text-muted mb-1">@group.Title (@group.Images.Count)</div>
+                                    <div class="d-flex flex-wrap gap-1 mb-2">
+                                        @foreach (var image in group.Images)
+                                        {
+                                            <img src="@image.ImageUrl" alt="@group.Title" loading="lazy"
+                                                 data-gallery-src="@image.ImageUrl"
+                                                 class="rounded border border-2" style="@thumbStyle" />
+                                        }
+                                    </div>
+                                }
+                            </div>
                         }
                     </div>
 
@@ -65,6 +114,10 @@
                             <tr>
                                 <th class="text-muted fw-normal">Tổng tồn kho</th>
                                 <td>@totalStock đôi</td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted fw-normal">Số ảnh</th>
+                                <td>@totalImages ảnh</td>
                             </tr>
                             <tr>
                                 <th class="text-muted fw-normal">Ngày tạo</th>

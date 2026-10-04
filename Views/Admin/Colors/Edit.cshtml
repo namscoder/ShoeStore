@@ -1,0 +1,58 @@
+@model ShoeStore.Models.Color
+
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Sửa Màu";
+}
+
+<div class="container-fluid">
+
+    <h2>Sửa màu</h2>
+
+    <form asp-controller="Colors"
+          asp-action="Edit"
+          asp-route-id="@Model.Id"
+          method="post"
+          id="editColorForm"
+          autocomplete="off">
+
+        <input type="hidden" asp-for="Id" />
+
+        <div class="mb-3">
+            <label asp-for="Name" class="form-label">
+                Tên màu
+            </label>
+
+            <input asp-for="Name"
+                   class="form-control"
+                   autocomplete="off" />
+
+            <span asp-validation-for="Name"
+                  class="text-danger">
+            </span>
+
+            <div class="form-text">
+                Đổi tên sẽ cập nhật ở mọi sản phẩm đang dùng màu này.
+            </div>
+        </div>
+
+        <button type="submit"
+                class="btn btn-primary">
+            Lưu thay đổi
+        </button>
+
+        <a asp-controller="Colors"
+           asp-action="Index"
+           class="btn btn-secondary ms-2">
+            Hủy
+        </a>
+
+    </form>
+
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.21.0/dist/jquery.validate.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery-validation-unobtrusive@4.0.0/dist/jquery.validate.unobtrusive.min.js"></script>
+}

@@ -153,6 +153,7 @@ namespace ShoeStore.Controllers
         public async Task<IActionResult> Detail(int id)
         {
             var product = await ProductsWithDetails()
+                .Include(p => p.Images) // thư viện ảnh: ảnh chung + ảnh theo màu
                 .FirstOrDefaultAsync(p => p.Id == id && p.Status);
 
             // Không có hoặc đang ẩn thì báo 404

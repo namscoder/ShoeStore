@@ -1,0 +1,41 @@
+@model ProfileSummary
+@* Cột menu bên trái của khu vực tài khoản (xem ViewComponents/ProfileNavViewComponent.cs) *@
+@{
+    var active = ViewBag.Active as string;
+    var initial = string.IsNullOrWhiteSpace(Model.FullName) ? "?" : Model.FullName.Trim()[..1].ToUpper();
+}
+
+<aside class="pf-nav">
+    <div class="pf-user">
+        <span class="pf-avatar">@initial</span>
+        <div>
+            <strong>@Model.FullName</strong>
+            <small>@Model.Email</small>
+        </div>
+    </div>
+
+    <nav class="pf-menu">
+        <a class="@(active == "info" ? "active" : "")" asp-controller="Profile" asp-action="Index">
+            <span>👤</span> Thông tin tài khoản
+        </a>
+        <a class="@(active == "orders" ? "active" : "")" asp-controller="Order" asp-action="Index">
+            <span>📦</span> Đơn hàng của tôi
+            @if (Model.ProcessingOrders > 0)
+            {
+                <em title="Đơn đang xử lý">@Model.ProcessingOrders</em>
+            }
+        </a>
+        <a class="@(active == "password" ? "active" : "")" asp-controller="Profile" asp-action="ChangePassword">
+            <span>🔒</span> Đổi mật khẩu
+        </a>
+        @if (Model.Role == AppRoles.Admin)
+        {
+            <a asp-controller="Admin" asp-action="Index">
+                <span>🛠</span> Trang quản trị
+            </a>
+        }
+        <form asp-controller="Account" asp-action="Logout" method="post">
+            <button type="submit"><span>↩</span> Đăng xuất</button>
+        </form>
+    </nav>
+</aside>

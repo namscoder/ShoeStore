@@ -1,10 +1,27 @@
 @model HomeViewModel
 @{
-    var categoryIcons = new[] { "🏃", "👟", "🥾", "👞", "🩴", "⚽", "🏀", "👠" };
+    // Chọn icon THEO TÊN danh mục (trước đây gán theo thứ tự nên "Dép & Sandal" lại ra 🥾).
+    // Thêm danh mục mới thì thêm 1 dòng ở đây; không khớp từ nào thì dùng 👟
+    string IconFor(string name)
+    {
+        var n = name.ToLowerInvariant();
+        if (n.Contains("chạy")) return "🏃";
+        if (n.Contains("đá bóng") || n.Contains("bóng đá")) return "⚽";
+        if (n.Contains("bóng rổ")) return "🏀";
+        if (n.Contains("dép") || n.Contains("sandal")) return "🩴";
+        if (n.Contains("lười") || n.Contains("giày tây") || n.Contains("giày da")) return "👞";
+        if (n.Contains("cao gót")) return "👠";
+        if (n.Contains("boot") || n.Contains("bốt")) return "🥾";
+        if (n.Contains("thể thao")) return "🏋️";
+        return "👟";
+    }
+
+    // Chỉ hiện danh mục đang có sản phẩm bán (số lượng đếm từ database trong HomeController)
+    var categories = Model.Categories.Where(c => c.ProductCount > 0).ToList();
 }
 
 <!-- ============ DANH MỤC ============ -->
-@if (Model.Categories.Any())
+@if (categories.Any())
 {
     <section class="hm-section" id="danh-muc">
         <div class="hm-section-head">
@@ -15,11 +32,11 @@
         </div>
 
         <div class="hm-categories">
-            @for (var i = 0; i < Model.Categories.Count; i++)
+            @foreach (var c in categories)
             {
-                var c = Model.Categories[i];
-                <a href="#san-pham-moi" class="hm-category" data-filter-link="@c.Id">
-                    <span class="hm-category-icon">@categoryIcons[i % categoryIcons.Length]</span>
+                @* Bấm vào => trang Sản phẩm lọc sẵn theo danh mục (xem được TẤT CẢ sản phẩm, không chỉ hàng mới) *@
+                <a class="hm-category" asp-controller="Shop" asp-action="Index" asp-route-CategoryId="@c.Id">
+                    <span class="hm-category-icon">@IconFor(c.Name)</span>
                     <strong>@c.Name</strong>
                     <span>@c.ProductCount sản phẩm</span>
                 </a>

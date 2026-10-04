@@ -31,9 +31,14 @@
 }
 
 /* ----- Ảnh ----- */
-.pd-gallery {
+.pd-gallery-wrap {
     position: sticky;
     top: 92px;
+    min-width: 0;
+}
+
+.pd-gallery {
+    position: relative;
     aspect-ratio: 1;
     background: #efece5;
     border-radius: 24px;
@@ -56,6 +61,60 @@
 .pd-gallery .hm-badges {
     top: 20px;
     left: 20px;
+}
+
+/* Dãy ảnh nhỏ dưới ảnh lớn (cuộn ngang khi nhiều ảnh) */
+.pd-thumbs {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scroll-behavior: smooth;
+}
+
+.pd-thumb {
+    flex: 0 0 76px;
+    height: 76px;
+    padding: 0;
+    border: 2px solid transparent;
+    border-radius: 14px;
+    background: #efece5;
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color 0.15s, opacity 0.15s;
+    opacity: 0.75;
+}
+
+.pd-thumb:hover {
+    opacity: 1;
+}
+
+.pd-thumb.active {
+    border-color: var(--ss-accent);
+    opacity: 1;
+}
+
+.pd-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* Nút chọn màu có ảnh nhỏ (giống Shopee) */
+.pd-choice-img {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px 6px 6px;
+}
+
+.pd-choice-img img {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    object-fit: cover;
 }
 
 /* ----- Thông tin ----- */
@@ -294,7 +353,7 @@
         gap: 24px;
     }
 
-    .pd-gallery {
+    .pd-gallery-wrap {
         position: static;
     }
 }

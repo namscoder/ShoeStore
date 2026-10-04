@@ -1,0 +1,132 @@
+@model Order
+@using System.Globalization
+@{
+    ViewData["Title"] = $"Đơn hàng #{Model.Id}";
+    ViewData["FullWidth"] = true;
+
+    var vi = new CultureInfo("vi-VN");
+    string FormatPrice(decimal price) => price.ToString("N0", vi) + "₫";
+
+    // Thứ tự các bước để vẽ thanh tiến trình đơn hàng
+    var steps = new[] { OrderStatuses.Pending, OrderStatuses.Confirmed, OrderStatuses.Shipping, OrderStatuses.Completed };
+    var currentStep = Array.IndexOf(steps, Model.Status);
+    var isCancelled = Model.Status == OrderStatuses.Cancelled;
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/home.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/cart.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/order.css" asp-append-version="true" />
+}
+
+<div class="ct-page">
+    <a class="ct-link" asp-controller="Order" asp-action="Index">← Đơn hàng của tôi</a>
+
+    <div class="ct-head od-detail-head">
+        <h1>Đơn hàng #@Model.Id</h1>
+        <span class="od-status @OrderStatuses.CssClass(Model.Status)">@OrderStatuses.DisplayName(Model.Status)</span>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="ct-alert ct-alert-ok">@TempData["SuccessMessage"]</div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="ct-alert ct-alert-err">@TempData["ErrorMessage"]</div>
+    }
+
+    <!-- ============ TIẾN TRÌNH ĐƠN ============ -->
+    @if (isCancelled)
+    {
+        <div class="od-card od-cancelled">
+            <span>Đơn hàng này đã được huỷ. Bạn có thể đặt lại các sản phẩm trong đơn.</span>
+            <form asp-controller="Order" asp-action="Reorder" asp-route-id="@Model.Id" method="post">
+                <button type="submit" class="hm-btn hm-btn-primary od-reorder-btn">Đặt lại đơn này</button>
+            </form>
+        </div>
+    }
+    else
+    {
+        <ol class="od-progress">
+            @for (var i = 0; i < steps.Length; i++)
+            {
+                <li class="@(i <= currentStep ? "done" : "")">
+                    <span class="od-dot">@(i < currentStep ? "✓" : (i + 1).ToString())</span>
+                    @OrderStatuses.DisplayName(steps[i])
+                </li>
+            }
+        </ol>
+    }
+
+    <div class="ct-main">
+        <!-- ============ SẢN PHẨM ============ -->
+        <div class="ct-lines">
+            @foreach (var detail in Model.OrderDetails)
+            {
+                var variant = detail.ProductVariant;
+                var product = variant?.Product;
+                var image = product?.Images
+                    .Where(i => i.ColorId == variant!.ColorId)
+                    .OrderBy(i => i.SortOrder)
+                    .Select(i => i.ImageUrl)
+                    .FirstOrDefault() ?? product?.Image;
+
+                <div class="ct-line">
+                    <a class="ct-thumb" asp-controller="Home" asp-action="Detail" asp-route-id="@product?.Id">
+                        @if (!string.IsNullOrEmpty(image))
+                        {
+                            <img src="@image" alt="@product?.Name" loading="lazy" />
+                        }
+                        else
+                        {
+                            <span>👟</span>
+                        }
+                    </a>
+
+                    <div class="ct-info">
+                        @if (product?.Brand != null)
+                        {
+                            <span class="ct-brand">@product.Brand.Name</span>
+                        }
+                        <a class="ct-name" asp-controller="Home" asp-action="Detail" asp-route-id="@product?.Id">@product?.Name</a>
+                        <div class="ct-variant">Màu: <strong>@variant?.Color?.Name</strong> · Size: <strong>@variant?.Size?.Name</strong></div>
+                        <div class="ct-unit">@FormatPrice(detail.Price) × @detail.Quantity</div>
+                    </div>
+
+                    <div class="ct-actions">
+                        <strong class="ct-line-total">@FormatPrice(detail.Price * detail.Quantity)</strong>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- ============ THÔNG TIN ĐƠN ============ -->
+        <aside class="ct-summary">
+            <h2>Thông tin đơn hàng</h2>
+
+            <div class="ct-row"><span>Ngày đặt</span><span>@Model.OrderDate.ToString("dd/MM/yyyy HH:mm")</span></div>
+            <div class="ct-row"><span>Số điện thoại</span><span>@Model.Phone</span></div>
+            <div class="od-address">
+                <span>Địa chỉ giao hàng</span>
+                <p>@Model.ShippingAddress</p>
+            </div>
+            <div class="ct-row"><span>Thanh toán</span><span>Khi nhận hàng (COD)</span></div>
+            <div class="ct-row"><span>Phí giao hàng</span><span class="ct-free">Miễn phí</span></div>
+            <div class="ct-row ct-total">
+                <span>Tổng cộng</span>
+                <strong>@FormatPrice(Model.TotalAmount)</strong>
+            </div>
+
+            @if (Model.Status == OrderStatuses.Pending)
+            {
+                <form asp-controller="Order" asp-action="Cancel" asp-route-id="@Model.Id" method="post">
+                    <button type="submit" class="od-cancel-btn"
+                            onclick="return confirm('Bạn chắc chắn muốn huỷ đơn hàng này?');">
+                        Huỷ đơn hàng
+                    </button>
+                </form>
+                <p class="ct-summary-note">Bạn có thể huỷ khi đơn còn đang chờ cửa hàng xác nhận.</p>
+            }        </aside>
+    </div>
+</div>

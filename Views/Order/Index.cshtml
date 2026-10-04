@@ -1,0 +1,92 @@
+@model List<Order>
+@using System.Globalization
+@{
+    ViewData["Title"] = "Đơn hàng của tôi";
+    ViewData["FullWidth"] = true;
+
+    var vi = new CultureInfo("vi-VN");
+    string FormatPrice(decimal price) => price.ToString("N0", vi) + "₫";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/home.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/cart.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/order.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/profile.css" asp-append-version="true" />
+}
+
+<div class="ct-page">
+    <div class="ct-head">
+        <h1>Tài khoản của tôi</h1>
+    </div>
+
+    @* Nằm trong khu vực tài khoản: menu bên trái giống trang Thông tin / Đổi mật khẩu *@
+    <div class="pf-layout">
+        @await Component.InvokeAsync("ProfileNav", new { active = "orders" })
+
+        <div class="pf-content">
+            <div class="pf-section-head">
+                <h2>Đơn hàng của tôi</h2>
+                @if (Model.Any())
+                {
+                    <span class="ct-head-count">@Model.Count đơn</span>
+                }
+            </div>
+
+            @if (!Model.Any())
+            {
+                <div class="ct-empty">
+                    <div class="ct-empty-icon">📦</div>
+                    <h2>Bạn chưa có đơn hàng nào</h2>
+                    <p>Đặt đôi giày đầu tiên ngay hôm nay nhé.</p>
+                    <a class="hm-btn hm-btn-primary" asp-controller="Shop" asp-action="Index">Mua sắm ngay</a>
+                </div>
+            }
+            else
+            {
+                <div class="od-list">
+                    @foreach (var order in Model)
+                    {
+                        var details = order.OrderDetails.ToList();
+                        var first = details.FirstOrDefault()?.ProductVariant;
+                        var firstImage = first?.Product?.Images
+                            .Where(i => i.ColorId == first.ColorId)
+                            .OrderBy(i => i.SortOrder)
+                            .Select(i => i.ImageUrl)
+                            .FirstOrDefault() ?? first?.Product?.Image;
+
+                        <a class="od-item" asp-controller="Order" asp-action="Detail" asp-route-id="@order.Id">
+                            <span class="ct-thumb od-item-thumb">
+                                @if (!string.IsNullOrEmpty(firstImage))
+                                {
+                                    <img src="@firstImage" alt="" loading="lazy" />
+                                }
+                                else
+                                {
+                                    <span>👟</span>
+                                }
+                            </span>
+
+                            <span class="od-item-info">
+                                <span class="od-item-top">
+                                    <strong>Đơn #@order.Id</strong>
+                                    <span class="od-status @OrderStatuses.CssClass(order.Status)">@OrderStatuses.DisplayName(order.Status)</span>
+                                </span>
+                                <span class="od-item-products">
+                                    @(first?.Product?.Name)
+                                    @if (details.Count > 1)
+                                    {
+                                        <text> và @(details.Count - 1) sản phẩm khác</text>
+                                    }
+                                </span>
+                                <small>@order.OrderDate.ToString("dd/MM/yyyy HH:mm") · @details.Sum(d => d.Quantity) đôi</small>
+                            </span>
+
+                            <strong class="od-item-total">@FormatPrice(order.TotalAmount)</strong>
+                        </a>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>

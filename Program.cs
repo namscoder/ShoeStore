@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using ShoeStore.Data;
 using ShoeStore.Infrastructure;
 using ShoeStore.Models;
+using ShoeStore.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,6 +17,15 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 // Băm / kiểm tra mật khẩu (PBKDF2, có salt) - không bao giờ lưu mật khẩu gốc
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
+
+// Đọc giỏ hàng (dùng chung cho trang Giỏ hàng và Đặt hàng)
+builder.Services.AddScoped<CartService>();
+
+// Đổi trạng thái đơn hàng (huỷ đơn thì trả hàng về kho)
+builder.Services.AddScoped<OrderService>();
+
+// Thông tin tổng quan tài khoản (trang Tài khoản + menu bên trái)
+builder.Services.AddScoped<ProfileService>();
 
 // Đăng nhập bằng cookie
 builder.Services

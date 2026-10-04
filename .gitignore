@@ -482,4 +482,4 @@ $RECYCLE.BIN/
 *.swp
 
 # Ảnh sản phẩm upload khi test, không đưa lên git
-wwwroot/images/products/git ls-files bin obj
+wwwroot/images/products/

@@ -1,0 +1,258 @@
+@model IEnumerable<ShoeStore.Models.User>
+
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Quản lý người dùng";
+
+    var filter = (ShoeStore.Models.ViewModels.UserFilter)ViewBag.Filter;
+    var totalItems = (int)ViewBag.TotalItems;
+    var totalPages = (int)ViewBag.TotalPages;
+    var pageSize = (int)ViewBag.PageSize;
+    var currentUserId = (int)ViewBag.CurrentUserId;
+
+    var fromItem = totalItems == 0 ? 0 : (filter.Page - 1) * pageSize + 1;
+    var toItem = Math.Min(filter.Page * pageSize, totalItems);
+    var startPage = Math.Max(1, filter.Page - 2);
+    var endPage = Math.Min(totalPages, filter.Page + 2);
+
+    // Địa chỉ trang hiện tại (kèm bộ lọc + số trang) để quay lại sau khi Khoá / Mở khoá
+    var currentUrl = Context.Request.Path + Context.Request.QueryString;
+}
+
+<div class="container-fluid">
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+    }
+
+    <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+        <a asp-controller="Users" asp-action="Create" class="btn btn-primary">
+            <i class="bi bi-person-plus"></i> Thêm tài khoản
+        </a>
+
+        <span class="ms-auto text-muted">
+            @if (totalItems > 0)
+            {
+                <text>Hiển thị <strong>@fromItem–@toItem</strong> / <strong>@totalItems</strong> tài khoản</text>
+            }
+            else
+            {
+                <text>Tìm thấy <strong>0</strong> tài khoản</text>
+            }
+        </span>
+    </div>
+
+    @* ===== Bộ lọc ===== *@
+    <form asp-controller="Users" asp-action="Index" method="get" class="card card-body mb-3">
+        <div class="row g-2 align-items-end">
+            <div class="col-12 col-md-5">
+                <label class="form-label small text-muted mb-1">Tìm kiếm</label>
+                <input type="text" name="Keyword" value="@filter.Keyword" class="form-control"
+                       placeholder="Tên đăng nhập, email, họ tên, số điện thoại..." />
+            </div>
+
+            <div class="col-6 col-md-2">
+                <label class="form-label small text-muted mb-1">Vai trò</label>
+                <select name="Role" class="form-select">
+                    <option value="">-- Tất cả --</option>
+                    <option value="Admin" selected="@(filter.Role == "Admin")">Quản trị viên</option>
+                    <option value="Customer" selected="@(filter.Role == "Customer")">Khách hàng</option>
+                </select>
+            </div>
+
+            <div class="col-6 col-md-2">
+                <label class="form-label small text-muted mb-1">Trạng thái</label>
+                <select name="Status" class="form-select">
+                    <option value="">-- Tất cả --</option>
+                    <option value="active" selected="@(filter.Status == "active")">Hoạt động</option>
+                    <option value="locked" selected="@(filter.Status == "locked")">Đã khoá</option>
+                </select>
+            </div>
+
+            <div class="col-12 col-md-3 d-flex gap-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-funnel"></i> Lọc
+                </button>
+                @if (filter.IsFiltering)
+                {
+                    <a asp-controller="Users" asp-action="Index" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-lg"></i> Xóa lọc
+                    </a>
+                }
+            </div>
+        </div>
+    </form>
+
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover align-middle">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Tên đăng nhập</th>
+                    <th>Họ tên</th>
+                    <th>Email</th>
+                    <th>Số điện thoại</th>
+                    <th>Vai trò</th>
+                    <th>Trạng thái</th>
+                    <th>Ngày tạo</th>
+                    <th>Thao tác</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="9" class="text-center text-muted">
+                            @(filter.IsFiltering ? "Không tìm thấy tài khoản phù hợp" : "Chưa có tài khoản nào")
+                        </td>
+                    </tr>
+                }
+
+                @foreach (var account in Model)
+                {
+                    var isSelf = account.Id == currentUserId;
+
+                    <tr>
+                        <td>@account.Id</td>
+
+                        <td>
+                            @account.Username
+                            @if (isSelf)
+                            {
+                                <span class="badge bg-info text-dark ms-1">Bạn</span>
+                            }
+                        </td>
+
+                        <td>@account.FullName</td>
+
+                        <td>@account.Email</td>
+
+                        <td>
+                            @if (!string.IsNullOrEmpty(account.Phone))
+                            {
+                                @account.Phone
+                            }
+                            else
+                            {
+                                <span class="text-muted">—</span>
+                            }
+                        </td>
+
+                        <td>
+                            @if (account.Role == ShoeStore.Models.AppRoles.Admin)
+                            {
+                                <span class="badge bg-danger">Quản trị viên</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Khách hàng</span>
+                            }
+                        </td>
+
+                        <td>
+                            @if (account.Status)
+                            {
+                                <span class="badge bg-success">Hoạt động</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-dark">Đã khoá</span>
+                            }
+                        </td>
+
+                        <td>@account.CreatedAt.ToString("dd/MM/yyyy")</td>
+
+                        <td class="text-nowrap">
+                            <a asp-controller="Users" asp-action="Edit" asp-route-id="@account.Id"
+                               class="btn btn-warning btn-sm">
+                                Sửa
+                            </a>
+
+                            @if (isSelf)
+                            {
+                                <button type="button" class="btn btn-secondary btn-sm" disabled
+                                        title="Không thể tự khoá tài khoản của chính mình">
+                                    Khoá
+                                </button>
+                            }
+                            else
+                            {
+                                <form asp-controller="Users" asp-action="ToggleStatus" asp-route-id="@account.Id"
+                                      method="post" class="d-inline">
+                                    <input type="hidden" name="returnUrl" value="@currentUrl" />
+                                    @if (account.Status)
+                                    {
+                                        <button type="submit" class="btn btn-secondary btn-sm"
+                                                onclick="return confirm('Khoá tài khoản này? Người dùng sẽ bị đăng xuất và không đăng nhập được nữa.');">
+                                            Khoá
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button type="submit" class="btn btn-success btn-sm">Mở khoá</button>
+                                    }
+                                </form>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @* ===== Phân trang ===== *@
+    @if (totalPages > 1)
+    {
+        <nav aria-label="Phân trang tài khoản">
+            <ul class="pagination justify-content-center">
+                <li class="page-item @(filter.Page == 1 ? "disabled" : "")">
+                    <a class="page-link" asp-controller="Users" asp-action="Index"
+                       asp-all-route-data="@filter.ToRouteValues(filter.Page - 1)" aria-label="Trang trước">&laquo;</a>
+                </li>
+
+                @if (startPage > 1)
+                {
+                    <li class="page-item">
+                        <a class="page-link" asp-controller="Users" asp-action="Index"
+                           asp-all-route-data="@filter.ToRouteValues(1)">1</a>
+                    </li>
+                    @if (startPage > 2)
+                    {
+                        <li class="page-item disabled"><span class="page-link">…</span></li>
+                    }
+                }
+
+                @for (var i = startPage; i <= endPage; i++)
+                {
+                    <li class="page-item @(i == filter.Page ? "active" : "")">
+                        <a class="page-link" asp-controller="Users" asp-action="Index"
+                           asp-all-route-data="@filter.ToRouteValues(i)">@i</a>
+                    </li>
+                }
+
+                @if (endPage < totalPages)
+                {
+                    @if (endPage < totalPages - 1)
+                    {
+                        <li class="page-item disabled"><span class="page-link">…</span></li>
+                    }
+                    <li class="page-item">
+                        <a class="page-link" asp-controller="Users" asp-action="Index"
+                           asp-all-route-data="@filter.ToRouteValues(totalPages)">@totalPages</a>
+                    </li>
+                }
+
+                <li class="page-item @(filter.Page == totalPages ? "disabled" : "")">
+                    <a class="page-link" asp-controller="Users" asp-action="Index"
+                       asp-all-route-data="@filter.ToRouteValues(filter.Page + 1)" aria-label="Trang sau">&raquo;</a>
+                </li>
+            </ul>
+        </nav>
+    }
+</div>

@@ -19,6 +19,13 @@ namespace ShoeStore.Controllers
         private static readonly string[] AllowedImageExtensions = { ".jpg", ".jpeg", ".png", ".webp" };
         private const long MaxImageSize = 2 * 1024 * 1024;
 
+        // Thư viện ảnh: tối đa số ảnh mỗi nhóm (ảnh chung / mỗi màu) và tổng dung lượng 1 lần gửi
+        private const int MaxGalleryImagesPerGroup = 8;
+        private const long MaxGalleryTotalSize = 50 * 1024 * 1024;
+
+        // Giới hạn kích thước request khi thêm/sửa (lớn hơn tổng ảnh một chút cho các ô chữ)
+        private const long MaxProductRequestSize = 60 * 1024 * 1024;
+
         // Tồn kho từ 1 đến số này được coi là "sắp hết hàng"
         private const int LowStockThreshold = 5;
 
@@ -39,7 +46,10 @@ namespace ShoeStore.Controllers
                 .Include(p => p.Brand)
                 .Include(p => p.Category)
                 .Include(p => p.ProductVariants).ThenInclude(v => v.Size)
-                .Include(p => p.ProductVariants).ThenInclude(v => v.Color);
+                .Include(p => p.ProductVariants).ThenInclude(v => v.Color)
+                .Include(p => p.Images).ThenInclude(i => i.Color)
+                // Lấy 2 danh sách (biến thể + ảnh) bằng các câu SQL riêng thay vì 1 câu JOIN rất to
+                .AsSplitQuery();
 
             // ===== Ghép từng điều kiện lọc vào câu truy vấn (chỉ khi người dùng có chọn) =====
             if (!string.IsNullOrWhiteSpace(filter.Keyword))
@@ -155,12 +165,18 @@ namespace ShoeStore.Controllers
 
         [HttpPost("Create")]
         [ValidateAntiForgeryToken]
+        [RequestSizeLimit(MaxProductRequestSize)]
+        [RequestFormLimits(MultipartBodyLengthLimit = MaxProductRequestSize)]
         public async Task<IActionResult> Create(
             [Bind("Name,Price,Description,Status,BrandId,CategoryId,ProductVariants")] Product product,
-            IFormFile? imageFile)
+            IFormFile? imageFile,
+            List<ProductImageGroup>? imageGroups)
         {
+            imageGroups ??= new List<ProductImageGroup>();
+
             ValidateImage(imageFile, required: true);
             ValidateVariants(product.ProductVariants);
+            ValidateImageGroups(imageGroups, product.ProductVariants);
 
             if (!ModelState.IsValid)
             {
@@ -179,6 +195,7 @@ namespace ShoeStore.Controllers
                 .ToList();
 
             product.Image = await SaveImage(imageFile!);
+            await AddGalleryImages(product, imageGroups);
             product.CreatedAt = DateTime.Now;
 
             _context.Products.Add(product);
@@ -194,6 +211,8 @@ namespace ShoeStore.Controllers
             var product = await _context.Products
                 .AsNoTracking()
                 .Include(p => p.ProductVariants)
+                .Include(p => p.Images).ThenInclude(i => i.Color)
+                .AsSplitQuery()
                 .FirstOrDefaultAsync(p => p.Id == id);
 
             if (product == null)
@@ -226,19 +245,28 @@ namespace ShoeStore.Controllers
 
         [HttpPost("Edit/{id}")]
         [ValidateAntiForgeryToken]
+        [RequestSizeLimit(MaxProductRequestSize)]
+        [RequestFormLimits(MultipartBodyLengthLimit = MaxProductRequestSize)]
         public async Task<IActionResult> Edit(
             int id,
             [Bind("Id,Name,Price,Description,Status,BrandId,CategoryId,ProductVariants")] Product product,
-            IFormFile? imageFile)
+            IFormFile? imageFile,
+            List<ProductImageGroup>? imageGroups,
+            List<int>? deleteImageIds)
         {
             if (id != product.Id)
             {
                 return NotFound();
             }
 
-            // Lấy sản phẩm gốc kèm các biến thể hiện có trong database
+            imageGroups ??= new List<ProductImageGroup>();
+            deleteImageIds ??= new List<int>();
+
+            // Lấy sản phẩm gốc kèm các biến thể và ảnh hiện có trong database
             var existing = await _context.Products
                 .Include(p => p.ProductVariants)
+                .Include(p => p.Images).ThenInclude(i => i.Color)
+                .AsSplitQuery()
                 .FirstOrDefaultAsync(p => p.Id == id);
 
             if (existing == null)
@@ -246,8 +274,28 @@ namespace ShoeStore.Controllers
                 return NotFound();
             }
 
+            // Ảnh bị đánh dấu xoá: chỉ lấy ảnh THUỘC sản phẩm này (không tin Id gửi từ form)
+            var imagesToDelete = existing.Images.Where(i => deleteImageIds.Contains(i.Id)).ToList();
+            var keptImages = existing.Images.Except(imagesToDelete).ToList();
+
             ValidateImage(imageFile, required: false);
             ValidateVariants(product.ProductVariants);
+            ValidateImageGroups(imageGroups, product.ProductVariants, keptImages);
+
+            // Không cho bỏ một màu khỏi bảng size/màu khi màu đó vẫn còn ảnh (chưa đánh dấu xoá)
+            var variantColorIds = product.ProductVariants.Select(v => v.ColorId).ToHashSet();
+            var orphanColors = keptImages
+                .Where(i => i.ColorId.HasValue && !variantColorIds.Contains(i.ColorId.Value))
+                .Select(i => i.Color?.Name)
+                .Distinct()
+                .ToList();
+
+            if (orphanColors.Count > 0)
+            {
+                ModelState.AddModelError("ImageGroups",
+                    $"Màu {string.Join(", ", orphanColors)} vẫn còn ảnh. " +
+                    "Hãy xoá ảnh của màu đó trước khi bỏ màu khỏi bảng size/màu.");
+            }
 
             // Biến thể có trong database nhưng không còn trong form => người dùng đã xoá dòng đó
             var removedVariants = existing.ProductVariants
@@ -299,7 +347,7 @@ namespace ShoeStore.Controllers
                 }
             }
 
-            // Có chọn ảnh mới thì lưu ảnh mới, giữ lại đường dẫn ảnh cũ để xoá sau
+            // Có chọn ảnh đại diện mới thì lưu ảnh mới, giữ lại đường dẫn ảnh cũ để xoá sau
             string? oldImage = null;
             if (imageFile != null && imageFile.Length > 0)
             {
@@ -307,10 +355,22 @@ namespace ShoeStore.Controllers
                 existing.Image = await SaveImage(imageFile);
             }
 
+            // Thư viện ảnh: xoá các ảnh bị đánh dấu, rồi thêm ảnh mới (nối tiếp thứ tự ảnh cũ cùng màu)
+            foreach (var image in imagesToDelete)
+            {
+                existing.Images.Remove(image);
+                _context.ProductImages.Remove(image);
+            }
+            await AddGalleryImages(existing, imageGroups);
+
             await _context.SaveChangesAsync();
 
-            // Chỉ xoá ảnh cũ sau khi đã lưu database thành công
+            // Chỉ xoá file ảnh sau khi đã lưu database thành công
             DeleteImage(oldImage);
+            foreach (var image in imagesToDelete)
+            {
+                DeleteImage(image.ImageUrl);
+            }
 
             TempData["SuccessMessage"] = "Sửa sản phẩm thành công!";
             return RedirectToAction(nameof(Index));
@@ -340,7 +400,10 @@ namespace ShoeStore.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id, string? returnUrl)
         {
-            var product = await _context.Products.FindAsync(id);
+            var product = await _context.Products
+                .Include(p => p.Images)
+                .FirstOrDefaultAsync(p => p.Id == id);
+
             if (product == null)
             {
                 return NotFound();
@@ -357,13 +420,18 @@ namespace ShoeStore.Controllers
                 return RedirectToList(returnUrl);
             }
 
-            var imagePath = product.Image;
+            // Ảnh đại diện + toàn bộ ảnh trong thư viện (các dòng ProductImages tự xoá theo nhờ Cascade)
+            var imagePaths = new List<string?> { product.Image };
+            imagePaths.AddRange(product.Images.Select(i => i.ImageUrl));
 
             _context.Products.Remove(product);
             await _context.SaveChangesAsync();
 
             // Xoá file ảnh sau khi đã xoá trong database thành công
-            DeleteImage(imagePath);
+            foreach (var path in imagePaths)
+            {
+                DeleteImage(path);
+            }
 
             TempData["SuccessMessage"] = $"Đã xóa sản phẩm \"{product.Name}\"";
             return RedirectToList(returnUrl);
@@ -392,6 +460,88 @@ namespace ShoeStore.Controllers
 
             ViewBag.Sizes = await _context.Sizes.OrderBy(s => s.Name).ToListAsync();
             ViewBag.Colors = await _context.Colors.OrderBy(c => c.Name).ToListAsync();
+
+            // Giới hạn thư viện ảnh, gửi sang view để JavaScript kiểm tra giống server
+            ViewBag.MaxGalleryImagesPerGroup = MaxGalleryImagesPerGroup;
+            ViewBag.MaxGalleryTotalSize = MaxGalleryTotalSize;
+            ViewBag.MaxImageSize = MaxImageSize;
+        }
+
+        // Kiểm tra thư viện ảnh: đúng định dạng/dung lượng, không quá số ảnh mỗi nhóm (tính cả ảnh cũ còn giữ),
+        // và màu của nhóm ảnh phải có trong bảng size/màu của sản phẩm
+        private void ValidateImageGroups(
+            List<ProductImageGroup> groups,
+            ICollection<ProductVariant> variants,
+            IEnumerable<ProductImage>? keptImages = null)
+        {
+            keptImages ??= Enumerable.Empty<ProductImage>();
+
+            var variantColorIds = variants
+                .Where(v => v.ColorId > 0)
+                .Select(v => v.ColorId)
+                .ToHashSet();
+
+            long totalSize = 0;
+
+            foreach (var group in groups)
+            {
+                var files = group.Files.Where(f => f.Length > 0).ToList();
+                if (files.Count == 0)
+                {
+                    continue;
+                }
+
+                if (group.ColorId.HasValue && !variantColorIds.Contains(group.ColorId.Value))
+                {
+                    ModelState.AddModelError("ImageGroups", "Có ảnh thuộc màu không có trong bảng size/màu");
+                }
+
+                var existingCount = keptImages.Count(i => i.ColorId == group.ColorId);
+                if (existingCount + files.Count > MaxGalleryImagesPerGroup)
+                {
+                    ModelState.AddModelError("ImageGroups", $"Mỗi nhóm ảnh tối đa {MaxGalleryImagesPerGroup} ảnh");
+                }
+
+                foreach (var file in files)
+                {
+                    var error = GetImageError(file);
+                    if (error != null)
+                    {
+                        ModelState.AddModelError("ImageGroups", $"Ảnh \"{file.FileName}\": {error}");
+                    }
+
+                    totalSize += file.Length;
+                }
+            }
+
+            if (totalSize > MaxGalleryTotalSize)
+            {
+                ModelState.AddModelError("ImageGroups", "Tổng dung lượng thư viện ảnh quá lớn");
+            }
+        }
+
+        // Lưu file ảnh của từng nhóm và gắn vào sản phẩm.
+        // SortOrder nối tiếp các ảnh đã có cùng màu (dùng lại được cho trang Sửa).
+        private async Task AddGalleryImages(Product product, List<ProductImageGroup> groups)
+        {
+            foreach (var group in groups)
+            {
+                var nextOrder = product.Images
+                    .Where(i => i.ColorId == group.ColorId)
+                    .Select(i => i.SortOrder + 1)
+                    .DefaultIfEmpty(0)
+                    .Max();
+
+                foreach (var file in group.Files.Where(f => f.Length > 0))
+                {
+                    product.Images.Add(new ProductImage
+                    {
+                        ColorId = group.ColorId,
+                        ImageUrl = await SaveImage(file),
+                        SortOrder = nextOrder++
+                    });
+                }
+            }
         }
 
         // Kiểm tra danh sách biến thể: phải có ít nhất 1 dòng và không được trùng size + màu
@@ -481,16 +631,28 @@ namespace ShoeStore.Controllers
                 return;
             }
 
-            var extension = Path.GetExtension(imageFile.FileName).ToLowerInvariant();
+            var error = GetImageError(imageFile);
+            if (error != null)
+            {
+                ModelState.AddModelError("ImageFile", error);
+            }
+        }
+
+        // Kiểm tra 1 file ảnh: sai định dạng hoặc quá dung lượng thì trả về câu báo lỗi, hợp lệ thì trả về null
+        private static string? GetImageError(IFormFile file)
+        {
+            var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
             if (!AllowedImageExtensions.Contains(extension))
             {
-                ModelState.AddModelError("ImageFile", "Chỉ chấp nhận ảnh .jpg, .jpeg, .png, .webp");
+                return "Chỉ chấp nhận ảnh .jpg, .jpeg, .png, .webp";
             }
 
-            if (imageFile.Length > MaxImageSize)
+            if (file.Length > MaxImageSize)
             {
-                ModelState.AddModelError("ImageFile", "Ảnh không được vượt quá 2MB");
+                return "Ảnh không được vượt quá 2MB";
             }
+
+            return null;
         }
 
         // Lưu ảnh vào wwwroot/images/products và trả về đường dẫn để lưu vào database

@@ -1,5 +1,57 @@
-// Trang chi tiết sản phẩm: chọn màu + size, kiểm tra tồn kho, chọn số lượng
+// Trang chi tiết sản phẩm: thư viện ảnh, chọn màu + size, kiểm tra tồn kho, chọn số lượng
 document.addEventListener("DOMContentLoaded", function () {
+    // ===================== Thư viện ảnh =====================
+    var mainImage = document.querySelector("[data-gallery-main]");
+    var thumbsBox = document.querySelector("[data-gallery-thumbs]");
+    var galleryColor = null; // màu đang ưu tiên trong dãy ảnh nhỏ
+
+    function allThumbs() {
+        return thumbsBox ? Array.prototype.slice.call(thumbsBox.children) : [];
+    }
+
+    // Hiện 1 ảnh nhỏ lên khung ảnh lớn
+    function showThumb(thumb) {
+        if (!thumb || !mainImage) return;
+        mainImage.src = thumb.dataset.src;
+        allThumbs().forEach(function (t) {
+            t.classList.toggle("active", t === thumb);
+        });
+    }
+
+    // Chọn màu: ảnh của màu đó dồn lên đầu dãy + hiện ảnh đầu tiên của màu lên khung lớn.
+    // Bỏ chọn màu (colorId = null): trả dãy ảnh về thứ tự ban đầu.
+    function showColorImages(colorId) {
+        if (!thumbsBox || colorId === galleryColor) return;
+        galleryColor = colorId;
+
+        var byOrder = allThumbs().sort(function (a, b) {
+            return Number(a.dataset.order) - Number(b.dataset.order);
+        });
+
+        var ofColor = colorId === null ? [] : byOrder.filter(function (t) {
+            return t.dataset.thumbColor === String(colorId);
+        });
+
+        ofColor.concat(byOrder.filter(function (t) { return ofColor.indexOf(t) < 0; }))
+            .forEach(function (t) { thumbsBox.appendChild(t); }); // appendChild với phần tử có sẵn = di chuyển
+
+        if (ofColor.length > 0) {
+            showThumb(ofColor[0]);
+        } else if (colorId === null) {
+            showThumb(byOrder[0]);
+        }
+        // Màu không có ảnh riêng thì giữ nguyên ảnh đang xem
+
+        thumbsBox.scrollLeft = 0;
+    }
+
+    if (thumbsBox) {
+        thumbsBox.addEventListener("click", function (e) {
+            showThumb(e.target.closest(".pd-thumb"));
+        });
+    }
+
+    // ===================== Chọn màu / size =====================
     var form = document.querySelector(".pd-form");
     if (!form) return;
 
@@ -45,6 +97,9 @@ document.addEventListener("DOMContentLoaded", function () {
             btn.classList.toggle("active", id === selectedColor);
             btn.classList.toggle("unavailable", !colorAvailable(id));
         });
+
+        // Ảnh của màu đang chọn lên đầu (chỉ đổi khi màu thay đổi, chọn size không ảnh hưởng)
+        showColorImages(selectedColor);
 
         sizeButtons.forEach(function (btn) {
             var id = Number(btn.dataset.sizeId);
@@ -118,14 +173,48 @@ document.addEventListener("DOMContentLoaded", function () {
         qtyInput.value = Math.min(Math.max(1, value), Number(qtyInput.max));
     });
 
-    // Giỏ hàng chưa làm (cần đăng nhập) -> tạm thời chỉ báo lại lựa chọn
+    // Thêm vào giỏ: gửi bằng fetch để không phải tải lại trang
     form.addEventListener("submit", function (e) {
         e.preventDefault();
         if (addButton.disabled) return;
 
-        note.textContent = "Bạn đã chọn " + qtyInput.value + " đôi, màu " + colorLabel.textContent +
-            ", size " + sizeLabel.textContent + ". Chức năng giỏ hàng sẽ có khi làm phần đăng nhập.";
-        note.hidden = false;
+        addButton.disabled = true;
+
+        fetch(form.action, {
+            method: "POST",
+            body: new FormData(form), // gồm cả mã chống giả mạo (__RequestVerificationToken)
+            headers: { "X-Requested-With": "XMLHttpRequest" }
+        })
+            .then(function (response) { return response.json(); })
+            .then(function (data) {
+                // Chưa đăng nhập => chuyển sang trang đăng nhập, xong quay lại trang này
+                if (data.requireLogin) {
+                    window.location.href = data.loginUrl;
+                    return;
+                }
+
+                note.textContent = data.message + " ";
+                if (data.success) {
+                    var link = document.createElement("a");
+                    link.href = data.cartUrl;
+                    link.textContent = "Xem giỏ hàng →";
+                    note.appendChild(link);
+
+                    // Cập nhật số trên biểu tượng giỏ hàng ở header
+                    document.querySelectorAll("[data-cart-count]").forEach(function (badge) {
+                        badge.textContent = data.cartCount;
+                        badge.hidden = data.cartCount <= 0;
+                    });
+                }
+                note.hidden = false;
+            })
+            .catch(function () {
+                note.textContent = "Có lỗi xảy ra, vui lòng thử lại.";
+                note.hidden = false;
+            })
+            .finally(function () {
+                addButton.disabled = false;
+            });
     });
 
     // Chỉ có 1 màu hoặc 1 size thì chọn sẵn

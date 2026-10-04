@@ -1,0 +1,153 @@
+@model ProfileViewModel
+@using System.Globalization
+@{
+    ViewData["Title"] = "Tài khoản của tôi";
+    ViewData["FullWidth"] = true;
+
+    var summary = Model.Summary!;
+    var vi = new CultureInfo("vi-VN");
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/home.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/cart.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/order.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/profile.css" asp-append-version="true" />
+}
+
+<div class="ct-page">
+    <div class="ct-head">
+        <h1>Tài khoản của tôi</h1>
+    </div>
+
+    <div class="pf-layout">
+        @await Component.InvokeAsync("ProfileNav", new { active = "info" })
+
+        <div class="pf-content">
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="ct-alert ct-alert-ok">@TempData["SuccessMessage"]</div>
+            }
+
+            <!-- ============ TỔNG QUAN ĐƠN HÀNG ============ -->
+            <div class="pf-stats">
+                <a class="pf-stat" asp-controller="Order" asp-action="Index">
+                    <strong>@summary.TotalOrders</strong>
+                    <span>Tổng đơn hàng</span>
+                </a>
+                <a class="pf-stat" asp-controller="Order" asp-action="Index">
+                    <strong>@summary.ProcessingOrders</strong>
+                    <span>Đang xử lý</span>
+                </a>
+                <a class="pf-stat" asp-controller="Order" asp-action="Index">
+                    <strong>@summary.CompletedOrders</strong>
+                    <span>Đã hoàn thành</span>
+                </a>
+                <div class="pf-stat pf-stat-accent">
+                    <strong>@summary.TotalSpent.ToString("N0", vi)₫</strong>
+                    <span>Đã mua (đơn hoàn thành)</span>
+                </div>
+            </div>
+
+            <!-- ============ SỬA THÔNG TIN ============ -->
+            <form asp-controller="Profile" asp-action="Index" method="post" class="od-card" novalidate>
+                <h2>Thông tin cá nhân</h2>
+
+                <div class="pf-grid">
+                    <div class="od-field">
+                        <label>Tên đăng nhập</label>
+                        <div class="od-readonly">@summary.Username</div>
+                    </div>
+                    <div class="od-field">
+                        <label>Ngày tham gia</label>
+                        <div class="od-readonly">@summary.CreatedAt.ToString("dd/MM/yyyy")</div>
+                    </div>
+
+                    <div class="od-field">
+                        <label asp-for="FullName"></label>
+                        <input asp-for="FullName" class="od-input" autocomplete="name" />
+                        <span asp-validation-for="FullName" class="od-error"></span>
+                    </div>
+                    <div class="od-field">
+                        <label asp-for="Phone">Số điện thoại <small class="pf-optional">(không bắt buộc)</small></label>
+                        <input asp-for="Phone" class="od-input" placeholder="vd: 0912345678" autocomplete="tel" />
+                        <span asp-validation-for="Phone" class="od-error"></span>
+                    </div>
+                </div>
+
+                <div class="od-field">
+                    <label asp-for="Email"></label>
+                    <input asp-for="Email" class="od-input" autocomplete="email" />
+                    <span asp-validation-for="Email" class="od-error"></span>
+                </div>
+
+                @* ===== Địa chỉ mặc định: chọn giống trang Đặt hàng, KHÔNG bắt buộc ===== *@
+                <div class="od-field" data-address-picker data-api="https://provinces.open-api.vn/api/v2" data-preview-label="Địa chỉ: ">
+                    <label>Địa chỉ mặc định <small class="pf-optional">(tự điền sẵn khi đặt hàng)</small></label>
+                    <input type="hidden" asp-for="AddressMode" />
+
+                    @if (!string.IsNullOrEmpty(Model.SavedAddressHint))
+                    {
+                        <div class="od-saved-hint">
+                            Địa chỉ đang lưu: <strong>@Model.SavedAddressHint</strong><br />
+                            Chọn lại theo đơn vị hành chính mới bên dưới, hoặc để trống để giữ nguyên.
+                        </div>
+                    }
+
+                    <div data-picker-area>
+                        <div class="od-address-grid">
+                            <div>
+                                <select name="ProvinceName" class="od-input" data-province disabled
+                                        data-selected="@Model.ProvinceName">
+                                    <option value="">Đang tải tỉnh/thành phố...</option>
+                                </select>
+                                @Html.ValidationMessage("ProvinceName", "", new { @class = "od-error" })
+                            </div>
+                            <div>
+                                <select name="WardName" class="od-input" data-ward disabled
+                                        data-selected="@Model.WardName">
+                                    <option value="">Chọn phường/xã</option>
+                                </select>
+                                @Html.ValidationMessage("WardName", "", new { @class = "od-error" })
+                            </div>
+                        </div>
+
+                        <input name="Street" value="@Model.Street" class="od-input od-street" data-street
+                               placeholder="Số nhà, tên đường, toà nhà..." autocomplete="address-line1"
+                               data-val="true"
+                               data-val-length="Số nhà, tên đường không được vượt quá 150 ký tự" data-val-length-max="150" />
+                        @Html.ValidationMessage("Street", "", new { @class = "od-error" })
+
+                        <div class="od-address-preview" data-address-preview hidden></div>
+                    </div>
+
+                    @* Dự phòng: không tải được danh sách tỉnh/thành thì nhập tay cả địa chỉ *@
+                    <div data-manual-area hidden>
+                        <div class="od-saved-hint">Không tải được danh sách tỉnh/thành. Vui lòng nhập địa chỉ đầy đủ (để trống nếu không muốn lưu).</div>
+                        <textarea name="Address" class="od-input" rows="3" disabled
+                                  placeholder="Số nhà, tên đường, phường/xã, tỉnh/thành phố"
+                                  data-val="true"
+                                  data-val-length="Địa chỉ phải từ 10 đến 255 ký tự" data-val-length-min="10" data-val-length-max="255">@Model.Address</textarea>
+                        @Html.ValidationMessage("Address", "", new { @class = "od-error" })
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(Model.ProvinceName))
+                    {
+                        <button type="button" class="pf-link-btn" data-clear-address>Xoá địa chỉ mặc định</button>
+                    }
+                </div>
+
+                <div class="pf-actions">
+                    <button type="submit" class="hm-btn hm-btn-primary" data-submit>Lưu thay đổi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/dist/jquery.validate.unobtrusive.min.js"></script>
+    <script src="~/js/address-picker.js" asp-append-version="true"></script>
+    <script src="~/js/profile.js" asp-append-version="true"></script>
+}

@@ -277,6 +277,12 @@ a {
 .site-user {
     font-size: 14px;
     color: var(--ss-ink-2);
+    text-decoration: none;
+}
+
+a.site-user:hover,
+a.site-user.active {
+    color: var(--ss-accent-dark);
 }
 
 .site-link,
@@ -294,4 +300,83 @@ a {
 .site-link:hover,
 .site-link-btn:hover {
     color: var(--ss-accent);
+}
+
+/* ===== Ô tìm kiếm trên header ===== */
+.site-search input {
+    width: 180px;
+    padding: 9px 14px 9px 36px;
+    border: 1px solid var(--ss-line);
+    border-radius: 999px;
+    background: var(--ss-surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2355524c' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M20 20l-3.5-3.5'/%3E%3C/svg%3E") no-repeat 13px center;
+    font: 400 14px var(--ss-font);
+    outline: none;
+    transition: border-color 0.15s, width 0.2s;
+}
+
+.site-search input:focus {
+    border-color: var(--ss-ink);
+    width: 220px;
+}
+
+.site-menu-search {
+    display: none;
+}
+
+/* Màn hình vừa: ẩn ô tìm trên header cho đỡ chật */
+@media (max-width: 1180px) {
+    .site-search-desktop {
+        display: none;
+    }
+}
+
+/* Điện thoại: ô tìm kiếm nằm trong menu */
+@media (max-width: 860px) {
+    .site-menu-search {
+        display: block;
+        margin-top: 6px;
+    }
+
+    .site-menu-search input {
+        width: 100%;
+    }
+}
+
+/* ===== Biểu tượng giỏ hàng trên header ===== */
+.site-cart {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 999px;
+    color: var(--ss-ink);
+    text-decoration: none;
+    transition: background 0.15s;
+}
+
+.site-cart:hover,
+.site-cart.active {
+    background: var(--ss-surface);
+    color: var(--ss-ink);
+}
+
+.site-cart-count {
+    position: absolute;
+    top: 2px;
+    right: 0;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 999px;
+    background: var(--ss-accent);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 18px;
+    text-align: center;
+}
+
+.site-cart-count[hidden] {
+    display: none;
 }

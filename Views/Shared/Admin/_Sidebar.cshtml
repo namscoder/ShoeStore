@@ -1,3 +1,9 @@
+@inject ShoeStore.Data.ApplicationDbContext Db
+@using Microsoft.EntityFrameworkCore
+@{
+    // Số đơn đang chờ xác nhận => hiện nhắc trên menu "Đơn hàng"
+    var pendingOrders = await Db.Orders.CountAsync(o => o.Status == ShoeStore.Models.OrderStatuses.Pending);
+}
 <aside class="admin-sidebar">
 
     <div class="admin-logo">
@@ -41,14 +47,23 @@
             <span>Thương hiệu</span>
         </a>
 
-        <a href="#">
-            <i class="bi bi-cart3"></i>
-            <span>Đơn hàng</span>
+        <a class="nav-link" asp-controller="Colors" asp-action="Index">
+            <i class="bi bi-palette"></i>
+            <span>Màu sắc</span>
         </a>
 
-        <a href="#">
+        <a class="nav-link" asp-controller="AdminOrders" asp-action="Index">
+            <i class="bi bi-cart3"></i>
+            <span>Đơn hàng</span>
+            @if (pendingOrders > 0)
+            {
+                <span class="badge rounded-pill bg-danger ms-auto" title="@pendingOrders đơn đang chờ xác nhận">@pendingOrders</span>
+            }
+        </a>
+
+        <a class="nav-link" asp-controller="Users" asp-action="Index">
             <i class="bi bi-people"></i>
-            <span>Khách hàng</span>
+            <span>Người dùng</span>
         </a>
 
 
@@ -56,14 +71,9 @@
             Hệ thống
         </div>
 
-        <a href="#">
+        <a asp-controller="Profile" asp-action="Index">
             <i class="bi bi-person-gear"></i>
             <span>Tài khoản</span>
-        </a>
-
-        <a href="#">
-            <i class="bi bi-gear"></i>
-            <span>Cài đặt</span>
         </a>
 
 

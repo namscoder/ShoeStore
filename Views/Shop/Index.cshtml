@@ -1,0 +1,251 @@
+@model ShopViewModel
+@using System.Globalization
+@{
+    var f = Model.Filter;
+    var vi = new CultureInfo("vi-VN");
+    string Money(decimal value) => value.ToString("N0", vi) + "₫";
+    string Link(Action<ShopFilter>? change = null) => (Url.Action("Index", "Shop") ?? "/san-pham") + f.ToQuery(change);
+
+    var categoryName = Model.Categories.FirstOrDefault(c => c.Id == f.CategoryId)?.Name;
+
+    // Tiêu đề trang theo điều kiện đang lọc
+    var heading = !string.IsNullOrWhiteSpace(f.Q) ? $"Kết quả cho \"{f.Q.Trim()}\""
+        : categoryName ?? "Tất cả sản phẩm";
+
+    ViewData["Title"] = heading;
+    ViewData["FullWidth"] = true;
+
+    // Các mức giá chọn nhanh
+    var priceRanges = new (string Label, decimal? Min, decimal? Max)[]
+    {
+        ("Dưới 1 triệu", null, 1000000),
+        ("1 – 2 triệu", 1000000, 2000000),
+        ("2 – 3 triệu", 2000000, 3000000),
+        ("3 – 5 triệu", 3000000, 5000000),
+        ("Trên 5 triệu", 5000000, null)
+    };
+
+    var fromItem = Model.TotalItems == 0 ? 0 : (f.Page - 1) * Model.PageSize + 1;
+    var toItem = Math.Min(f.Page * Model.PageSize, Model.TotalItems);
+    var activeFilterCount = (f.CategoryId.HasValue ? 1 : 0) + f.BrandIds.Count + f.SizeIds.Count
+        + (f.MinPrice.HasValue || f.MaxPrice.HasValue ? 1 : 0) + (f.InStock ? 1 : 0);
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/home.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/shop.css" asp-append-version="true" />
+}
+
+<div class="sp-page">
+    <nav class="pd-breadcrumb sp-breadcrumb" aria-label="breadcrumb">
+        <a asp-controller="Home" asp-action="Index">Trang chủ</a>
+        <span>/</span>
+        <span>Sản phẩm</span>
+    </nav>
+
+    <div class="sp-head">
+        <h1>@heading</h1>
+        <span class="sp-count">@Model.TotalItems sản phẩm</span>
+    </div>
+
+    <div class="sp-layout">
+        <!-- ============ CỘT LỌC ============ -->
+        <aside class="sp-sidebar" data-shop-sidebar>
+            <form method="get" action="@Url.Action("Index", "Shop")" id="shopFilter" data-shop-filter>
+
+                <div class="sp-block">
+                    <label class="sp-block-title" for="spSearch">Tìm kiếm</label>
+                    <div class="sp-search">
+                        <input id="spSearch" type="search" name="Q" value="@f.Q" placeholder="Tên giày, thương hiệu..." />
+                        <button type="submit" aria-label="Tìm">🔍</button>
+                    </div>
+                </div>
+
+                <div class="sp-block">
+                    <div class="sp-block-title">Danh mục</div>
+                    <label class="sp-option">
+                        <input type="radio" name="CategoryId" value="" checked="@(!f.CategoryId.HasValue)" />
+                        <span>Tất cả</span>
+                    </label>
+                    @foreach (var c in Model.Categories)
+                    {
+                        <label class="sp-option">
+                            <input type="radio" name="CategoryId" value="@c.Id" checked="@(f.CategoryId == c.Id)" />
+                            <span>@c.Name</span>
+                            <em>@c.Count</em>
+                        </label>
+                    }
+                </div>
+
+                <div class="sp-block">
+                    <div class="sp-block-title">Thương hiệu</div>
+                    @foreach (var b in Model.Brands)
+                    {
+                        <label class="sp-option">
+                            <input type="checkbox" name="BrandIds" value="@b.Id" checked="@f.BrandIds.Contains(b.Id)" />
+                            <span>@b.Name</span>
+                            <em>@b.Count</em>
+                        </label>
+                    }
+                </div>
+
+                <div class="sp-block">
+                    <div class="sp-block-title">Size</div>
+                    <div class="sp-sizes">
+                        @foreach (var s in Model.Sizes)
+                        {
+                            <label class="sp-size">
+                                <input type="checkbox" name="SizeIds" value="@s.Id" checked="@f.SizeIds.Contains(s.Id)" />
+                                <span>@s.Name</span>
+                            </label>
+                        }
+                    </div>
+                </div>
+
+                <div class="sp-block">
+                    <div class="sp-block-title">Khoảng giá</div>
+                    <div class="sp-price-presets">
+                        @foreach (var r in priceRanges)
+                        {
+                            var isActive = f.MinPrice == r.Min && f.MaxPrice == r.Max;
+                            <a class="sp-chip @(isActive ? "active" : "")"
+                               href="@Link(x => { x.MinPrice = isActive ? null : r.Min; x.MaxPrice = isActive ? null : r.Max; })">@r.Label</a>
+                        }
+                    </div>
+                    <div class="sp-price-inputs">
+                        <input type="number" name="MinPrice" min="0" step="50000" placeholder="Từ ₫"
+                               value="@f.MinPrice?.ToString("0", CultureInfo.InvariantCulture)" />
+                        <span>–</span>
+                        <input type="number" name="MaxPrice" min="0" step="50000" placeholder="Đến ₫"
+                               value="@f.MaxPrice?.ToString("0", CultureInfo.InvariantCulture)" />
+                    </div>
+                    <button type="submit" class="sp-apply">Áp dụng</button>
+                </div>
+
+                <div class="sp-block">
+                    <label class="sp-option sp-switch">
+                        <input type="checkbox" name="InStock" value="true" checked="@f.InStock" />
+                        <span>Chỉ hiện sản phẩm còn hàng</span>
+                    </label>
+                </div>
+
+                @if (f.IsFiltering)
+                {
+                    <a class="sp-clear" asp-controller="Shop" asp-action="Index">Xoá tất cả bộ lọc</a>
+                }
+            </form>
+        </aside>
+
+        <!-- ============ KẾT QUẢ ============ -->
+        <section class="sp-results">
+            <div class="sp-toolbar">
+                <button type="button" class="sp-filter-toggle" data-shop-toggle>
+                    ⚙ Bộ lọc @if (activeFilterCount > 0) { <em>@activeFilterCount</em> }
+                </button>
+
+                <span class="sp-showing">
+                    @if (Model.TotalItems > 0)
+                    {
+                        <text>Hiển thị @fromItem–@toItem / @Model.TotalItems</text>
+                    }
+                </span>
+
+                <label class="sp-sort">
+                    <span>Sắp xếp:</span>
+                    <select name="Sort" form="shopFilter" data-shop-sort>
+                        @foreach (var option in ShopFilter.SortOptions)
+                        {
+                            <option value="@option.Key" selected="@(f.Sort == option.Key)">@option.Value</option>
+                        }
+                    </select>
+                </label>
+            </div>
+
+            @* Các điều kiện đang lọc: bấm × để bỏ từng cái *@
+            @if (f.IsFiltering)
+            {
+                <div class="sp-active">
+                    @if (!string.IsNullOrWhiteSpace(f.Q))
+                    {
+                        <a class="sp-tag" href="@Link(x => x.Q = null)">“@f.Q.Trim()” <b>×</b></a>
+                    }
+                    @if (categoryName != null)
+                    {
+                        <a class="sp-tag" href="@Link(x => x.CategoryId = null)">@categoryName <b>×</b></a>
+                    }
+                    @foreach (var b in Model.Brands.Where(b => f.BrandIds.Contains(b.Id)))
+                    {
+                        <a class="sp-tag" href="@Link(x => x.BrandIds.Remove(b.Id))">@b.Name <b>×</b></a>
+                    }
+                    @foreach (var s in Model.Sizes.Where(s => f.SizeIds.Contains(s.Id)))
+                    {
+                        <a class="sp-tag" href="@Link(x => x.SizeIds.Remove(s.Id))">Size @s.Name <b>×</b></a>
+                    }
+                    @if (f.MinPrice.HasValue || f.MaxPrice.HasValue)
+                    {
+                        var priceLabel = f.MinPrice.HasValue && f.MaxPrice.HasValue ? $"{Money(f.MinPrice.Value)} – {Money(f.MaxPrice.Value)}"
+                            : f.MinPrice.HasValue ? $"Từ {Money(f.MinPrice.Value)}" : $"Đến {Money(f.MaxPrice!.Value)}";
+                        <a class="sp-tag" href="@Link(x => { x.MinPrice = null; x.MaxPrice = null; })">@priceLabel <b>×</b></a>
+                    }
+                    @if (f.InStock)
+                    {
+                        <a class="sp-tag" href="@Link(x => x.InStock = false)">Còn hàng <b>×</b></a>
+                    }
+                </div>
+            }
+
+            @if (!Model.Products.Any())
+            {
+                <div class="hm-empty sp-empty">
+                    <span>🔍</span>
+                    <h3>Không tìm thấy sản phẩm phù hợp</h3>
+                    <p>Thử bỏ bớt bộ lọc hoặc tìm bằng từ khoá khác.</p>
+                    <a class="hm-btn hm-btn-primary" asp-controller="Shop" asp-action="Index">Xem tất cả sản phẩm</a>
+                </div>
+            }
+            else
+            {
+                <div class="hm-grid sp-grid">
+                    @foreach (var p in Model.Products)
+                    {
+                        <partial name="~/Views/Home/ProductCard.cshtml" model="p" />
+                    }
+                </div>
+            }
+
+            @* ===== Phân trang ===== *@
+            @if (Model.TotalPages > 1)
+            {
+                var start = Math.Max(1, f.Page - 2);
+                var end = Math.Min(Model.TotalPages, f.Page + 2);
+
+                <nav class="sp-pages" aria-label="Phân trang">
+                    @if (f.Page > 1)
+                    {
+                        <a href="@Link(x => x.Page = f.Page - 1)" aria-label="Trang trước">‹</a>
+                    }
+                    @for (var i = start; i <= end; i++)
+                    {
+                        var pageNumber = i;
+                        if (pageNumber == f.Page)
+                        {
+                            <span class="active">@pageNumber</span>
+                        }
+                        else
+                        {
+                            <a href="@Link(x => x.Page = pageNumber)">@pageNumber</a>
+                        }
+                    }
+                    @if (f.Page < Model.TotalPages)
+                    {
+                        <a href="@Link(x => x.Page = f.Page + 1)" aria-label="Trang sau">›</a>
+                    }
+                </nav>
+            }
+        </section>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/shop.js" asp-append-version="true"></script>
+}

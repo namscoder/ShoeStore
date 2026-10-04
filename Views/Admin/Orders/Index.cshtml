@@ -1,0 +1,177 @@
+@model IEnumerable<ShoeStore.Models.Order>
+@using System.Globalization
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Quản lý đơn hàng";
+
+    var filter = (ShoeStore.Models.ViewModels.OrderFilter)ViewBag.Filter;
+    var statusCounts = (Dictionary<string, int>)ViewBag.StatusCounts;
+    var totalItems = (int)ViewBag.TotalItems;
+    var totalPages = (int)ViewBag.TotalPages;
+    var pageSize = (int)ViewBag.PageSize;
+
+    var fromItem = totalItems == 0 ? 0 : (filter.Page - 1) * pageSize + 1;
+    var toItem = Math.Min(filter.Page * pageSize, totalItems);
+    var startPage = Math.Max(1, filter.Page - 2);
+    var endPage = Math.Min(totalPages, filter.Page + 2);
+
+    var currentUrl = Context.Request.Path + Context.Request.QueryString;
+    var vi = new CultureInfo("vi-VN");
+    string FormatPrice(decimal price) => price.ToString("N0", vi) + " ₫";
+}
+
+<div class="container-fluid">
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+    }
+
+    @* ===== Tab trạng thái (kèm số đơn) ===== *@
+    <ul class="nav nav-pills flex-wrap gap-1 mb-3">
+        <li class="nav-item">
+            <a class="nav-link @(filter.Status == null ? "active" : "")" asp-controller="AdminOrders" asp-action="Index"
+               asp-all-route-data="@filter.ToRouteValues(1, null, keepStatus: false)">
+                Tất cả <span class="badge bg-light text-dark ms-1">@statusCounts.Values.Sum()</span>
+            </a>
+        </li>
+        @foreach (var status in ShoeStore.Models.OrderStatuses.All)
+        {
+            <li class="nav-item">
+                <a class="nav-link @(filter.Status == status ? "active" : "")" asp-controller="AdminOrders" asp-action="Index"
+                   asp-all-route-data="@filter.ToRouteValues(1, status, keepStatus: false)">
+                    @ShoeStore.Models.OrderStatuses.DisplayName(status)
+                    <span class="badge @ShoeStore.Models.OrderStatuses.BadgeClass(status) ms-1">@statusCounts.GetValueOrDefault(status)</span>
+                </a>
+            </li>
+        }
+    </ul>
+
+    @* ===== Tìm kiếm + lọc ngày ===== *@
+    <form asp-controller="AdminOrders" asp-action="Index" method="get" class="card card-body mb-3">
+        @if (!string.IsNullOrEmpty(filter.Status))
+        {
+            <input type="hidden" name="Status" value="@filter.Status" />
+        }
+        <div class="row g-2 align-items-end">
+            <div class="col-12 col-md-5">
+                <label class="form-label small text-muted mb-1">Tìm kiếm</label>
+                <input type="text" name="Keyword" value="@filter.Keyword" class="form-control"
+                       placeholder="Mã đơn (vd: 12), tên, tên đăng nhập, email, số điện thoại..." />
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label small text-muted mb-1">Từ ngày</label>
+                <input type="date" name="FromDate" value="@filter.FromDate?.ToString("yyyy-MM-dd")" class="form-control" />
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label small text-muted mb-1">Đến ngày</label>
+                <input type="date" name="ToDate" value="@filter.ToDate?.ToString("yyyy-MM-dd")" class="form-control" />
+            </div>
+            <div class="col-12 col-md-3 d-flex gap-2">
+                <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i> Tìm</button>
+                @if (filter.IsFiltering)
+                {
+                    <a asp-controller="AdminOrders" asp-action="Index" asp-route-Status="@filter.Status"
+                       class="btn btn-outline-secondary"><i class="bi bi-x-lg"></i> Xóa lọc</a>
+                }
+            </div>
+        </div>
+    </form>
+
+    <div class="d-flex justify-content-end mb-2 text-muted">
+        @if (totalItems > 0)
+        {
+            <span>Hiển thị <strong>@fromItem–@toItem</strong> / <strong>@totalItems</strong> đơn hàng</span>
+        }
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover align-middle">
+            <thead>
+                <tr>
+                    <th>Mã đơn</th>
+                    <th>Khách hàng</th>
+                    <th>Ngày đặt</th>
+                    <th class="text-end">Số đôi</th>
+                    <th class="text-end">Tổng tiền</th>
+                    <th>Trạng thái</th>
+                    <th>Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">Không có đơn hàng nào</td>
+                    </tr>
+                }
+
+                @foreach (var order in Model)
+                {
+                    <tr>
+                        <td><strong>#@order.Id</strong></td>
+                        <td>
+                            @(order.User?.FullName ?? order.User?.Username)
+                            <div class="small text-muted">@order.Phone</div>
+                        </td>
+                        <td>@order.OrderDate.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td class="text-end">@order.OrderDetails.Sum(d => d.Quantity)</td>
+                        <td class="text-end fw-semibold">@FormatPrice(order.TotalAmount)</td>
+                        <td>
+                            <span class="badge @ShoeStore.Models.OrderStatuses.BadgeClass(order.Status)">
+                                @ShoeStore.Models.OrderStatuses.DisplayName(order.Status)
+                            </span>
+                        </td>
+                        <td class="text-nowrap">
+                            <a asp-controller="AdminOrders" asp-action="Detail" asp-route-id="@order.Id"
+                               class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-eye"></i> Xem
+                            </a>
+
+                            @* Đơn mới: xác nhận nhanh ngay trên danh sách *@
+                            @if (order.Status == ShoeStore.Models.OrderStatuses.Pending)
+                            {
+                                <form asp-controller="AdminOrders" asp-action="UpdateStatus" asp-route-id="@order.Id"
+                                      method="post" class="d-inline">
+                                    <input type="hidden" name="currentStatus" value="@order.Status" />
+                                    <input type="hidden" name="newStatus" value="@ShoeStore.Models.OrderStatuses.Confirmed" />
+                                    <input type="hidden" name="returnUrl" value="@currentUrl" />
+                                    <button type="submit" class="btn btn-primary btn-sm">
+                                        <i class="bi bi-check-lg"></i> Xác nhận
+                                    </button>
+                                </form>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @* ===== Phân trang ===== *@
+    @if (totalPages > 1)
+    {
+        <nav aria-label="Phân trang đơn hàng">
+            <ul class="pagination justify-content-center">
+                <li class="page-item @(filter.Page == 1 ? "disabled" : "")">
+                    <a class="page-link" asp-controller="AdminOrders" asp-action="Index"
+                       asp-all-route-data="@filter.ToRouteValues(filter.Page - 1)" aria-label="Trang trước">&laquo;</a>
+                </li>
+                @for (var i = startPage; i <= endPage; i++)
+                {
+                    <li class="page-item @(i == filter.Page ? "active" : "")">
+                        <a class="page-link" asp-controller="AdminOrders" asp-action="Index"
+                           asp-all-route-data="@filter.ToRouteValues(i)">@i</a>
+                    </li>
+                }
+                <li class="page-item @(filter.Page == totalPages ? "disabled" : "")">
+                    <a class="page-link" asp-controller="AdminOrders" asp-action="Index"
+                       asp-all-route-data="@filter.ToRouteValues(filter.Page + 1)" aria-label="Trang sau">&raquo;</a>
+                </li>
+            </ul>
+        </nav>
+    }
+</div>

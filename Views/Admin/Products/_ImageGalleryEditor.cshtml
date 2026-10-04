@@ -1,0 +1,106 @@
+@model ShoeStore.Models.Product
+@{
+    // Giới hạn lấy từ controller để JavaScript kiểm tra giống hệt server
+    var maxFiles = (int)ViewBag.MaxGalleryImagesPerGroup;
+    var maxTotal = (long)ViewBag.MaxGalleryTotalSize;
+    var maxSize = (long)ViewBag.MaxImageSize;
+
+    // Ảnh cũ (chỉ có ở trang Sửa), chia theo màu, trong nhóm theo SortOrder
+    var generalImages = Model.Images
+        .Where(i => i.ColorId == null)
+        .OrderBy(i => i.SortOrder)
+        .ToList();
+
+    var colorImageGroups = Model.Images
+        .Where(i => i.ColorId != null)
+        .GroupBy(i => i.ColorId!.Value)
+        .OrderBy(g => g.First().Color?.Name)
+        .ToList();
+
+    // Vẽ 1 nhóm ảnh. colorId rỗng = nhóm "Ảnh chung"; images = ảnh cũ đang có của nhóm
+    void ImageGroup(string colorId, string title, IEnumerable<ShoeStore.Models.ProductImage> images)
+    {
+        <div class="image-group border rounded p-2" data-color-id="@colorId">
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <span class="fw-medium" data-role="title">@title</span>
+                <span class="text-muted small" data-role="count"></span>
+                <label class="btn btn-outline-primary btn-sm ms-auto mb-0" data-role="add-button">
+                    <i class="bi bi-plus-lg"></i> Thêm ảnh
+                    <input type="file" class="d-none" multiple accept=".jpg,.jpeg,.png,.webp" />
+                </label>
+            </div>
+            <input type="hidden" data-role="color-id" value="@colorId" />
+
+            <div class="d-flex flex-wrap gap-2">
+                @* Ảnh cũ: bấm × để đánh dấu xoá (bấm lại để hoàn tác) *@
+                <div data-role="existing" style="display: contents;">
+                    @foreach (var image in images)
+                    {
+                        <div class="position-relative" data-existing-image>
+                            <img src="@image.ImageUrl" alt="@title" class="rounded border"
+                                 style="width: 72px; height: 72px; object-fit: cover;" />
+                            <button type="button"
+                                    class="btn btn-danger btn-sm position-absolute top-0 end-0 py-0 px-1 lh-1"
+                                    data-delete-image-id="@image.Id" aria-label="Xoá ảnh này">&times;</button>
+                            <input type="hidden" name="DeleteImageIds" value="@image.Id" disabled />
+                        </div>
+                    }
+                </div>
+
+                @* Ảnh mới vừa chọn (JavaScript vẽ) *@
+                <div data-role="previews" style="display: contents;"></div>
+            </div>
+
+            <div class="text-warning-emphasis small mt-1" data-role="warning"></div>
+            <div class="text-danger small mt-1" data-role="error"></div>
+        </div>
+    }
+}
+
+<div class="mb-3">
+    <label class="form-label">
+        Thư viện ảnh <span class="text-muted small">(không bắt buộc)</span>
+    </label>
+    <div class="form-text mt-0 mb-2">
+        Ảnh chung dùng cho mọi màu. Chọn màu trong bảng size/màu ở trên thì nhóm ảnh của màu đó sẽ tự hiện ra.
+        Tối đa @maxFiles ảnh mỗi nhóm, mỗi ảnh không quá @(maxSize / 1024 / 1024)MB.
+        @if (Model.Images.Any())
+        {
+            <text>Bấm <strong>×</strong> trên ảnh cũ để xoá (bấm lại để hoàn tác), ảnh chỉ bị xoá khi bấm Lưu.</text>
+        }
+    </div>
+
+    <div id="imageGroups" class="d-flex flex-column gap-2"
+         data-allowed="jpg,jpeg,png,webp"
+         data-max-size="@maxSize"
+         data-max-files="@maxFiles"
+         data-max-total="@maxTotal">
+        @{ ImageGroup("", "Ảnh chung", generalImages); }
+
+        @foreach (var group in colorImageGroups)
+        {
+            ImageGroup(group.Key.ToString(), "Màu " + group.First().Color?.Name, group.OrderBy(i => i.SortOrder));
+        }
+    </div>
+
+    @* Hiện khi bảng size/màu chưa có màu nào => chưa có nhóm ảnh theo màu *@
+    <div id="colorGroupsHint" class="border rounded p-2 mt-2 text-muted small">
+        <i class="bi bi-info-circle"></i>
+        Muốn thêm ảnh theo màu? Hãy chọn màu ở cột <strong>Màu sắc</strong> trong bảng size/màu phía trên,
+        nhóm ảnh của màu đó sẽ hiện ra ở đây.
+    </div>
+
+    @Html.ValidationMessage("ImageGroups", "", new { @class = "text-danger d-block mt-1" })
+
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="form-text text-warning-emphasis">
+            Form vừa có lỗi nên ảnh mới đã chọn bị bỏ trống (trình duyệt không cho tự điền lại). Vui lòng chọn lại ảnh.
+        </div>
+    }
+
+    @* Khuôn mẫu nhóm ảnh theo màu: JavaScript sao chép khi có màu mới trong bảng size/màu *@
+    <template id="imageGroupTemplate">
+        @{ ImageGroup("", "", Enumerable.Empty<ShoeStore.Models.ProductImage>()); }
+    </template>
+</div>

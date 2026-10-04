@@ -1,0 +1,257 @@
+/* ===== Trang tài khoản (dùng kèm cart.css + order.css) ===== */
+
+.pf-layout {
+    display: grid;
+    grid-template-columns: 270px 1fr;
+    gap: 24px;
+    align-items: start;
+}
+
+/* ----- Cột menu bên trái ----- */
+.pf-nav {
+    background: var(--ss-surface);
+    border-radius: var(--ss-radius);
+    padding: 20px;
+    position: sticky;
+    top: 88px;
+}
+
+.pf-user {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-bottom: 16px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid var(--ss-line);
+}
+
+.pf-user strong,
+.pf-user small {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 170px;
+}
+
+.pf-user small {
+    color: var(--ss-muted);
+    font-size: 13px;
+}
+
+.pf-avatar {
+    flex: none;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: var(--ss-accent);
+    color: #fff;
+    font-size: 20px;
+    font-weight: 800;
+}
+
+.pf-menu a,
+.pf-menu button {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 10px 12px;
+    border: 0;
+    border-radius: 12px;
+    background: none;
+    font: 500 15px var(--ss-font);
+    color: var(--ss-ink-2);
+    text-decoration: none;
+    text-align: left;
+    cursor: pointer;
+}
+
+.pf-menu a:hover,
+.pf-menu button:hover {
+    background: var(--ss-bg);
+    color: var(--ss-ink);
+}
+
+.pf-menu a.active {
+    background: #fff4ee;
+    color: var(--ss-accent-dark);
+    font-weight: 700;
+}
+
+.pf-menu em {
+    margin-left: auto;
+    min-width: 22px;
+    padding: 1px 7px;
+    border-radius: 999px;
+    background: var(--ss-accent);
+    color: #fff;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 700;
+    text-align: center;
+}
+
+.pf-menu form {
+    margin: 6px 0 0;
+    padding-top: 6px;
+    border-top: 1px solid var(--ss-line);
+}
+
+/* ----- Thống kê đơn hàng ----- */
+.pf-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 20px;
+}
+
+.pf-stat {
+    background: var(--ss-surface);
+    border-radius: var(--ss-radius);
+    padding: 18px;
+    text-decoration: none;
+    color: var(--ss-ink);
+    transition: transform 0.15s;
+}
+
+a.pf-stat:hover {
+    transform: translateY(-2px);
+    color: var(--ss-ink);
+}
+
+.pf-stat strong {
+    display: block;
+    font-size: 26px;
+    font-weight: 800;
+    line-height: 1.2;
+}
+
+.pf-stat span {
+    color: var(--ss-muted);
+    font-size: 13px;
+}
+
+.pf-stat-accent {
+    background: var(--ss-ink);
+    color: #fff;
+}
+
+.pf-stat-accent strong {
+    font-size: 20px;
+    line-height: 1.6;
+}
+
+.pf-stat-accent span {
+    color: #bdb8ae;
+}
+
+/* ----- Form ----- */
+.pf-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 16px;
+}
+
+.pf-optional {
+    color: var(--ss-muted);
+    font-weight: 400;
+}
+
+.pf-link-btn {
+    margin-top: 8px;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: #b42318;
+    font: 600 13px var(--ss-font);
+    cursor: pointer;
+}
+
+.pf-link-btn:disabled {
+    color: var(--ss-muted);
+    cursor: default;
+}
+
+.pf-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 8px;
+}
+
+.pf-actions .hm-btn:disabled {
+    opacity: 0.6;
+    cursor: wait;
+}
+
+.pf-password {
+    max-width: 520px;
+}
+
+.pf-password-box {
+    position: relative;
+}
+
+.pf-password-box .od-input {
+    padding-right: 64px;
+}
+
+.pf-password-box button {
+    position: absolute;
+    top: 50%;
+    right: 8px;
+    transform: translateY(-50%);
+    padding: 6px 10px;
+    border: 0;
+    border-radius: 8px;
+    background: var(--ss-bg);
+    font: 600 13px var(--ss-font);
+    color: var(--ss-ink-2);
+    cursor: pointer;
+}
+
+.pf-hint {
+    color: var(--ss-muted);
+    font-size: 13px;
+}
+
+/* ----- Màn hình nhỏ ----- */
+@media (max-width: 900px) {
+    .pf-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .pf-nav {
+        position: static;
+    }
+
+    .pf-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 560px) {
+    .pf-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ----- Tiêu đề trong khu vực tài khoản (vd: Đơn hàng của tôi) ----- */
+.pf-section-head {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.pf-section-head h2 {
+    font-size: 22px;
+    font-weight: 800;
+    margin: 0;
+}
+
+.pf-content .ct-empty {
+    margin: 0;
+}

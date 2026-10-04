@@ -19,6 +19,38 @@
     }));
 
     var isNew = p.CreatedAt >= DateTime.Now.AddDays(-14);
+
+    // ===== Thư viện ảnh: ảnh đại diện -> ảnh chung -> ảnh theo màu (theo thứ tự các nút màu) =====
+    var colorOrder = Model.Colors.Select(c => c.Id).ToList();
+    int ColorRank(int colorId)
+    {
+        var index = colorOrder.IndexOf(colorId);
+        return index < 0 ? int.MaxValue : index;
+    }
+
+    var gallery = new List<(string Url, int? ColorId)>();
+    if (!string.IsNullOrEmpty(p.Image))
+    {
+        gallery.Add((p.Image, null));
+    }
+    gallery.AddRange(p.Images
+        .Where(i => i.ColorId == null)
+        .OrderBy(i => i.SortOrder)
+        .Select(i => (i.ImageUrl, (int?)null)));
+    gallery.AddRange(p.Images
+        .Where(i => i.ColorId != null)
+        .OrderBy(i => ColorRank(i.ColorId!.Value))
+        .ThenBy(i => i.SortOrder)
+        .Select(i => (i.ImageUrl, i.ColorId)));
+    gallery = gallery.DistinctBy(g => g.Url).ToList();
+
+    var mainImage = gallery.Select(g => g.Url).FirstOrDefault();
+
+    // Ảnh nhỏ hiện trên nút chọn màu (ảnh đầu tiên của màu đó)
+    var colorThumbs = p.Images
+        .Where(i => i.ColorId != null)
+        .GroupBy(i => i.ColorId!.Value)
+        .ToDictionary(g => g.Key, g => g.OrderBy(i => i.SortOrder).First().ImageUrl);
 }
 
 @section Styles {
@@ -41,26 +73,43 @@
 
     <!-- ============ THÔNG TIN CHÍNH ============ -->
     <div class="pd-main">
-        <div class="pd-gallery">
-            @if (!string.IsNullOrEmpty(p.Image))
-            {
-                <img src="@p.Image" alt="@p.Name" />
-            }
-            else
-            {
-                <span class="pd-noimg">👟</span>
-            }
+        <div class="pd-gallery-wrap">
+            <div class="pd-gallery">
+                @if (mainImage != null)
+                {
+                    <img src="@mainImage" alt="@p.Name" data-gallery-main />
+                }
+                else
+                {
+                    <span class="pd-noimg">👟</span>
+                }
 
-            <div class="hm-badges">
-                @if (Model.TotalStock == 0)
-                {
-                    <span class="hm-badge hm-badge-dark">Hết hàng</span>
-                }
-                else if (isNew)
-                {
-                    <span class="hm-badge">Mới</span>
-                }
+                <div class="hm-badges">
+                    @if (Model.TotalStock == 0)
+                    {
+                        <span class="hm-badge hm-badge-dark">Hết hàng</span>
+                    }
+                    else if (isNew)
+                    {
+                        <span class="hm-badge">Mới</span>
+                    }
+                </div>
             </div>
+
+            @* Dãy ảnh nhỏ: bấm để xem lớn. Chọn màu thì ảnh của màu đó tự lên đầu (detail.js) *@
+            @if (gallery.Count > 1)
+            {
+                <div class="pd-thumbs" data-gallery-thumbs>
+                    @for (var i = 0; i < gallery.Count; i++)
+                    {
+                        <button type="button" class="pd-thumb @(i == 0 ? "active" : "")"
+                                data-src="@gallery[i].Url" data-thumb-color="@gallery[i].ColorId" data-order="@i"
+                                aria-label="Xem ảnh @(i + 1)">
+                            <img src="@gallery[i].Url" alt="" loading="lazy" />
+                        </button>
+                    }
+                </div>
+            }
         </div>
 
         <div class="pd-info">
@@ -96,8 +145,11 @@
             }
             else
             {
-                <form class="pd-form" data-variants="@variantsJson" data-product-name="@p.Name" novalidate>
+                <form class="pd-form" asp-controller="Cart" asp-action="Add" method="post"
+                      data-variants="@variantsJson" data-product-name="@p.Name" novalidate>
                     <input type="hidden" name="ProductVariantId" value="" />
+                    @* Chưa đăng nhập thì sau khi đăng nhập quay lại đúng trang này *@
+                    <input type="hidden" name="returnUrl" value="@(Context.Request.Path + Context.Request.QueryString)" />
 
                     <!-- Màu -->
                     <div class="pd-option">
@@ -108,7 +160,14 @@
                         <div class="pd-choices">
                             @foreach (var c in Model.Colors)
                             {
-                                <button type="button" class="pd-choice" data-color-id="@c.Id" data-name="@c.Name">@c.Name</button>
+                                <button type="button" class="pd-choice @(colorThumbs.ContainsKey(c.Id) ? "pd-choice-img" : "")"
+                                        data-color-id="@c.Id" data-name="@c.Name">
+                                    @if (colorThumbs.TryGetValue(c.Id, out var thumb))
+                                    {
+                                        <img src="@thumb" alt="" loading="lazy" />
+                                    }
+                                    @c.Name
+                                </button>
                             }
                         </div>
                     </div>
@@ -139,7 +198,11 @@
                         <button type="submit" class="hm-btn hm-btn-primary pd-add" data-add disabled>Thêm vào giỏ hàng</button>
                     </div>
 
-                    <p class="pd-note" data-note hidden></p>
+                    @* Thông báo sau khi thêm vào giỏ (JavaScript điền vào, hoặc từ server nếu tắt JavaScript) *@
+                    @{
+                        var cartMessage = (TempData["SuccessMessage"] ?? TempData["ErrorMessage"]) as string;
+                    }
+                    <p class="pd-note" data-note hidden="@(cartMessage == null)">@cartMessage</p>
                 </form>
             }
 

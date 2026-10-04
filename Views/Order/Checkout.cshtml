@@ -1,0 +1,179 @@
+@model CheckoutViewModel
+@using System.Globalization
+@{
+    ViewData["Title"] = "Đặt hàng";
+    ViewData["FullWidth"] = true;
+
+    var vi = new CultureInfo("vi-VN");
+    string FormatPrice(decimal price) => price.ToString("N0", vi) + "₫";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/home.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/cart.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/order.css" asp-append-version="true" />
+}
+
+<div class="ct-page">
+    <nav class="od-steps" aria-label="Các bước đặt hàng">
+        <a asp-controller="Cart" asp-action="Index">1. Giỏ hàng</a>
+        <span>›</span>
+        <strong>2. Thông tin giao hàng</strong>
+        <span>›</span>
+        <span class="od-step-next">3. Hoàn tất</span>
+    </nav>
+
+    <div class="ct-head">
+        <h1>Đặt hàng</h1>
+    </div>
+
+    <form asp-controller="Order" asp-action="Checkout" method="post" id="checkoutForm" novalidate>
+        <div class="ct-main">
+            <!-- ============ THÔNG TIN GIAO HÀNG ============ -->
+            <div class="od-card">
+                <h2>Thông tin giao hàng</h2>
+
+                <div class="od-field">
+                    <label>Người nhận</label>
+                    <div class="od-readonly">@Model.ReceiverName</div>
+                </div>
+
+                <div class="od-field">
+                    <label asp-for="Phone"></label>
+                    <input asp-for="Phone" class="od-input" placeholder="vd: 0912345678" autocomplete="tel" />
+                    <span asp-validation-for="Phone" class="od-error"></span>
+                </div>
+
+                @* ===== Địa chỉ: chọn Tỉnh/Thành -> Phường/Xã (dữ liệu sau sáp nhập 07/2025) + số nhà, tên đường ===== *@
+                <div class="od-field" data-address-picker data-api="https://provinces.open-api.vn/api/v2">
+                    <label>Địa chỉ giao hàng</label>
+                    <input type="hidden" asp-for="AddressMode" />
+
+                    @if (!string.IsNullOrEmpty(Model.SavedAddressHint))
+                    {
+                        <div class="od-saved-hint">
+                            Địa chỉ đã lưu: <strong>@Model.SavedAddressHint</strong><br />
+                            Vui lòng chọn lại theo đơn vị hành chính mới bên dưới.
+                        </div>
+                    }
+
+                    <div data-picker-area>
+                        <div class="od-address-grid">
+                            <div>
+                                <select name="ProvinceName" class="od-input" data-province disabled
+                                        data-selected="@Model.ProvinceName"
+                                        data-val="true" data-val-required="Vui lòng chọn tỉnh/thành phố">
+                                    <option value="">Đang tải tỉnh/thành phố...</option>
+                                </select>
+                                @Html.ValidationMessage("ProvinceName", "", new { @class = "od-error" })
+                            </div>
+                            <div>
+                                <select name="WardName" class="od-input" data-ward disabled
+                                        data-selected="@Model.WardName"
+                                        data-val="true" data-val-required="Vui lòng chọn phường/xã">
+                                    <option value="">Chọn phường/xã</option>
+                                </select>
+                                @Html.ValidationMessage("WardName", "", new { @class = "od-error" })
+                            </div>
+                        </div>
+
+                        <input name="Street" value="@Model.Street" class="od-input od-street" data-street
+                               placeholder="Số nhà, tên đường, toà nhà..." autocomplete="address-line1"
+                               data-val="true" data-val-required="Vui lòng nhập số nhà, tên đường"
+                               data-val-length="Số nhà, tên đường không được vượt quá 150 ký tự" data-val-length-max="150" />
+                        @Html.ValidationMessage("Street", "", new { @class = "od-error" })
+
+                        <div class="od-address-preview" data-address-preview hidden></div>
+                    </div>
+
+                    @* Dự phòng: không tải được danh sách tỉnh/thành thì nhập tay cả địa chỉ *@
+                    <div data-manual-area hidden>
+                        <div class="od-saved-hint">Không tải được danh sách tỉnh/thành. Vui lòng nhập địa chỉ đầy đủ.</div>
+                        <textarea name="ShippingAddress" class="od-input" rows="3" disabled
+                                  placeholder="Số nhà, tên đường, phường/xã, tỉnh/thành phố"
+                                  data-val="true" data-val-required="Vui lòng nhập địa chỉ giao hàng"
+                                  data-val-length="Địa chỉ phải từ 10 đến 255 ký tự" data-val-length-min="10" data-val-length-max="255">@Model.ShippingAddress</textarea>
+                        @Html.ValidationMessage("ShippingAddress", "", new { @class = "od-error" })
+                    </div>
+                </div>
+
+                <label class="od-check">
+                    <input asp-for="SaveToProfile" />
+                    Lưu số điện thoại và địa chỉ này cho lần mua sau
+                </label>
+
+                <h2 class="od-subtitle">Phương thức thanh toán</h2>
+                <div class="od-payment">
+                    <span class="od-payment-icon">💵</span>
+                    <div>
+                        <strong>Thanh toán khi nhận hàng (COD)</strong>
+                        <p>Bạn kiểm tra hàng rồi mới trả tiền cho nhân viên giao hàng.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============ TÓM TẮT ĐƠN ============ -->
+            <aside class="ct-summary">
+                <h2>Đơn hàng (@Model.Cart.TotalQuantity đôi)</h2>
+
+                <ul class="od-mini">
+                    @foreach (var line in Model.Cart.Lines)
+                    {
+                        <li>
+                            <span class="od-mini-thumb">
+                                @if (!string.IsNullOrEmpty(line.Image))
+                                {
+                                    <img src="@line.Image" alt="@line.ProductName" loading="lazy" />
+                                }
+                                else
+                                {
+                                    <span>👟</span>
+                                }
+                                <em>@line.Quantity</em>
+                            </span>
+                            <span class="od-mini-info">
+                                <strong>@line.ProductName</strong>
+                                <small>@line.ColorName · Size @line.SizeName</small>
+                            </span>
+                            <span class="od-mini-price">@FormatPrice(line.LineTotal)</span>
+                        </li>
+                    }
+                </ul>
+
+                <div class="ct-row">
+                    <span>Tạm tính</span>
+                    <span>@FormatPrice(Model.Cart.Subtotal)</span>
+                </div>
+                <div class="ct-row">
+                    <span>Phí giao hàng</span>
+                    <span class="ct-free">Miễn phí</span>
+                </div>
+                <div class="ct-row ct-total">
+                    <span>Tổng cộng</span>
+                    <strong>@FormatPrice(Model.Cart.Subtotal)</strong>
+                </div>
+
+                <button type="submit" class="hm-btn hm-btn-primary ct-checkout" data-submit>
+                    Đặt hàng
+                </button>
+                <a class="ct-link od-back" asp-controller="Cart" asp-action="Index">← Quay lại giỏ hàng</a>
+            </aside>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/dist/jquery.validate.unobtrusive.min.js"></script>
+    <script src="~/js/address-picker.js" asp-append-version="true"></script>
+    <script>
+        // Chặn bấm "Đặt hàng" 2 lần liên tiếp (tạo 2 đơn)
+        document.getElementById("checkoutForm").addEventListener("submit", function () {
+            if (!window.jQuery || $(this).valid()) {
+                const button = this.querySelector("[data-submit]");
+                button.disabled = true;
+                button.textContent = "Đang đặt hàng...";
+            }
+        });
+    </script>
+}

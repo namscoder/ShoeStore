@@ -1,0 +1,166 @@
+@model CartViewModel
+@using System.Globalization
+@{
+    ViewData["Title"] = "Giỏ hàng";
+    ViewData["FullWidth"] = true;
+
+    var vi = new CultureInfo("vi-VN");
+    string FormatPrice(decimal price) => price.ToString("N0", vi) + "₫";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/home.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/cart.css" asp-append-version="true" />
+}
+
+<div class="ct-page">
+    <div class="ct-head">
+        <h1>Giỏ hàng</h1>
+        @if (Model.Lines.Any())
+        {
+            <span class="ct-head-count">@Model.Lines.Sum(l => l.Quantity) đôi</span>
+        }
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="ct-alert ct-alert-ok">@TempData["SuccessMessage"]</div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="ct-alert ct-alert-err">@TempData["ErrorMessage"]</div>
+    }
+
+    @if (!Model.Lines.Any())
+    {
+        <div class="ct-empty">
+            <div class="ct-empty-icon">🛒</div>
+            <h2>Giỏ hàng đang trống</h2>
+            <p>Chọn đôi giày bạn thích và thêm vào giỏ nhé.</p>
+            <a class="hm-btn hm-btn-primary" asp-controller="Home" asp-action="Index">Tiếp tục mua sắm</a>
+        </div>
+    }
+    else
+    {
+        <div class="ct-main">
+            <!-- ============ DANH SÁCH SẢN PHẨM ============ -->
+            <div class="ct-lines">
+                @foreach (var line in Model.Lines)
+                {
+                    <div class="ct-line @(line.CanBuy ? "" : "ct-line-off")">
+                        <a class="ct-thumb" asp-controller="Home" asp-action="Detail" asp-route-id="@line.ProductId">
+                            @if (!string.IsNullOrEmpty(line.Image))
+                            {
+                                <img src="@line.Image" alt="@line.ProductName" loading="lazy" />
+                            }
+                            else
+                            {
+                                <span>👟</span>
+                            }
+                        </a>
+
+                        <div class="ct-info">
+                            @if (!string.IsNullOrEmpty(line.BrandName))
+                            {
+                                <span class="ct-brand">@line.BrandName</span>
+                            }
+                            <a class="ct-name" asp-controller="Home" asp-action="Detail" asp-route-id="@line.ProductId">
+                                @line.ProductName
+                            </a>
+                            <div class="ct-variant">Màu: <strong>@line.ColorName</strong> · Size: <strong>@line.SizeName</strong></div>
+                            <div class="ct-unit">@FormatPrice(line.UnitPrice)</div>
+
+                            @* Cảnh báo tình trạng hàng *@
+                            @if (!line.ProductActive)
+                            {
+                                <div class="ct-warn">Sản phẩm đã ngừng bán</div>
+                            }
+                            else if (line.Stock == 0)
+                            {
+                                <div class="ct-warn">Size và màu này đã hết hàng</div>
+                            }
+                            else if (line.Quantity > line.Stock)
+                            {
+                                <div class="ct-warn">Kho chỉ còn @line.Stock đôi, hãy giảm số lượng</div>
+                            }
+                            else if (line.Stock <= 5)
+                            {
+                                <div class="ct-low">Chỉ còn @line.Stock đôi</div>
+                            }
+                        </div>
+
+                        <div class="ct-actions">
+                            @if (line.CanBuy)
+                            {
+                                @* Nút − / + là nút gửi form với số lượng mới, không cần JavaScript *@
+                                <form asp-controller="Cart" asp-action="Update" asp-route-id="@line.CartItemId"
+                                      method="post" class="ct-qty">
+                                    <button type="submit" name="quantity" value="@(line.Quantity - 1)"
+                                            aria-label="Giảm số lượng">−</button>
+                                    <span>@line.Quantity</span>
+                                    <button type="submit" name="quantity" value="@(line.Quantity + 1)"
+                                            aria-label="Tăng số lượng" disabled="@(line.Quantity >= line.Stock)">+</button>
+                                </form>
+                            }
+
+                            <strong class="ct-line-total">@FormatPrice(line.LineTotal)</strong>
+
+                            <form asp-controller="Cart" asp-action="Remove" asp-route-id="@line.CartItemId" method="post">
+                                <button type="submit" class="ct-remove">Xoá</button>
+                            </form>
+                        </div>
+                    </div>
+                }
+
+                <div class="ct-lines-foot">
+                    <a class="ct-link" asp-controller="Home" asp-action="Index">← Tiếp tục mua sắm</a>
+                    <form asp-controller="Cart" asp-action="Clear" method="post">
+                        <button type="submit" class="ct-remove"
+                                onclick="return confirm('Xoá toàn bộ sản phẩm trong giỏ hàng?');">
+                            Xoá tất cả
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- ============ TỔNG TIỀN ============ -->
+            <aside class="ct-summary">
+                <h2>Tóm tắt đơn hàng</h2>
+
+                <div class="ct-row">
+                    <span>Tạm tính (@Model.TotalQuantity đôi)</span>
+                    <span>@FormatPrice(Model.Subtotal)</span>
+                </div>
+                <div class="ct-row">
+                    <span>Phí giao hàng</span>
+                    <span class="ct-free">Miễn phí</span>
+                </div>
+                <div class="ct-row ct-total">
+                    <span>Tổng cộng</span>
+                    <strong>@FormatPrice(Model.Subtotal)</strong>
+                </div>
+
+                @if (Model.HasProblems)
+                {
+                    <p class="ct-summary-note">
+                        Một số sản phẩm đã hết hàng hoặc vượt số lượng trong kho và không được tính vào tổng.
+                    </p>
+                }
+
+                @if (Model.HasProblems || Model.TotalQuantity == 0)
+                {
+                    <button type="button" class="hm-btn hm-btn-primary ct-checkout" disabled>
+                        Tiến hành đặt hàng
+                    </button>
+                    <p class="ct-summary-note">Hãy xoá hoặc giảm số lượng các sản phẩm có cảnh báo màu đỏ để tiếp tục.</p>
+                }
+                else
+                {
+                    <a class="hm-btn hm-btn-primary ct-checkout" asp-controller="Order" asp-action="Checkout">
+                        Tiến hành đặt hàng
+                    </a>
+                }
+            </aside>
+        </div>
+    }
+</div>

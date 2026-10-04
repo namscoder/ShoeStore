@@ -1,0 +1,100 @@
+@model IEnumerable<ShoeStore.Models.Color>
+
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Quản lý màu sắc";
+
+    // Số sản phẩm đang dùng từng màu: ColorId => số sản phẩm
+    var productCounts = (Dictionary<int, int>)ViewBag.ProductCounts;
+}
+
+<div class="container-fluid">
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">
+            @TempData["SuccessMessage"]
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger">
+            @TempData["ErrorMessage"]
+        </div>
+    }
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <a asp-controller="Colors" asp-action="Create" class="btn btn-primary">
+            Thêm màu
+        </a>
+        <span class="text-muted">Có <strong>@Model.Count()</strong> màu</span>
+    </div>
+
+    <table class="table table-bordered table-hover align-middle">
+        <thead>
+            <tr>
+                <th style="width: 80px;">ID</th>
+                <th>Tên màu</th>
+                <th style="width: 200px;">Số sản phẩm đang dùng</th>
+                <th style="width: 160px;">Thao tác</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            @if (!Model.Any())
+            {
+                <tr>
+                    <td colspan="4" class="text-center text-muted">Chưa có màu nào</td>
+                </tr>
+            }
+
+            @foreach (var color in Model)
+            {
+                var count = productCounts.GetValueOrDefault(color.Id);
+
+                <tr>
+                    <td>@color.Id</td>
+
+                    <td>@color.Name</td>
+
+                    <td>
+                        @if (count > 0)
+                        {
+                            <span class="badge bg-primary">@count sản phẩm</span>
+                        }
+                        else
+                        {
+                            <span class="text-muted">Chưa dùng</span>
+                        }
+                    </td>
+
+                    <td class="text-nowrap">
+                        <a asp-controller="Colors" asp-action="Edit" asp-route-id="@color.Id"
+                           class="btn btn-warning btn-sm">
+                            Sửa
+                        </a>
+
+                        @if (count > 0)
+                        {
+                            @* Đang có sản phẩm dùng => làm mờ nút xoá (server vẫn chặn nếu cố gửi) *@
+                            <button type="button" class="btn btn-danger btn-sm" disabled
+                                    title="Đang có sản phẩm dùng màu này, không thể xóa">
+                                Xóa
+                            </button>
+                        }
+                        else
+                        {
+                            <form asp-controller="Colors" asp-action="Delete" asp-route-id="@color.Id"
+                                  method="post" class="d-inline">
+                                <button type="submit" class="btn btn-danger btn-sm"
+                                        onclick="return confirm('Bạn có chắc chắn muốn xóa màu này không?');">
+                                    Xóa
+                                </button>
+                            </form>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

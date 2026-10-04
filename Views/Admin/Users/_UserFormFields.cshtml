@@ -1,0 +1,102 @@
+@model ShoeStore.Models.ViewModels.UserFormViewModel
+@{
+    // Trang Sửa: không cho tự đổi quyền của chính mình
+    var isSelf = ViewBag.IsSelf is bool self && self;
+    var originalRole = ViewBag.OriginalRole as string ?? "";
+}
+
+<div class="row">
+    <div class="col-md-6 mb-3">
+        <label asp-for="Username" class="form-label"></label>
+        @if (Model.IsEdit)
+        {
+            @* Tên đăng nhập dùng để đăng nhập => không cho sửa *@
+            <input asp-for="Username" class="form-control" readonly />
+            <div class="form-text">Tên đăng nhập không thể thay đổi.</div>
+        }
+        else
+        {
+            <input asp-for="Username" class="form-control" autocomplete="off" placeholder="vd: nguyenvana" />
+            <span asp-validation-for="Username" class="text-danger"></span>
+        }
+    </div>
+
+    <div class="col-md-6 mb-3">
+        <label asp-for="Email" class="form-label"></label>
+        <input asp-for="Email" class="form-control" autocomplete="off" />
+        <span asp-validation-for="Email" class="text-danger"></span>
+    </div>
+
+    <div class="col-md-6 mb-3">
+        <label asp-for="FullName" class="form-label"></label>
+        <input asp-for="FullName" class="form-control" />
+        <span asp-validation-for="FullName" class="text-danger"></span>
+    </div>
+
+    <div class="col-md-6 mb-3">
+        <label asp-for="Phone" class="form-label"></label>
+        <input asp-for="Phone" class="form-control" placeholder="vd: 0912345678" />
+        <span asp-validation-for="Phone" class="text-danger"></span>
+    </div>
+
+    <div class="col-12 mb-3">
+        <label asp-for="Address" class="form-label"></label>
+        <input asp-for="Address" class="form-control" />
+        <span asp-validation-for="Address" class="text-danger"></span>
+    </div>
+
+    <div class="col-md-6 mb-3">
+        <label asp-for="Role" class="form-label"></label>
+        @if (isSelf)
+        {
+            @* Tự sửa tài khoản của mình: khoá ô vai trò, gửi lên giá trị cũ bằng ô ẩn *@
+            <select class="form-select" disabled>
+                <option>Quản trị viên</option>
+            </select>
+            <input type="hidden" name="Role" value="@Model.Role" data-original-role="@originalRole" />
+            <div class="form-text">Bạn không thể tự đổi quyền của chính mình.</div>
+        }
+        else
+        {
+            <select asp-for="Role" class="form-select" data-original-role="@originalRole">
+                <option value="Customer">Khách hàng</option>
+                <option value="Admin">Quản trị viên</option>
+            </select>
+            <div class="form-text">Quản trị viên có toàn quyền quản lý cửa hàng.</div>
+        }
+        <span asp-validation-for="Role" class="text-danger"></span>
+    </div>
+</div>
+
+<hr />
+
+<h6 class="mb-1">@(Model.IsEdit ? "Đặt lại mật khẩu" : "Mật khẩu")</h6>
+<div class="form-text mt-0 mb-2">
+    @if (Model.IsEdit)
+    {
+        <text>Bỏ trống nếu không muốn đổi mật khẩu.</text>
+    }
+    Mật khẩu ít nhất 6 ký tự, gồm cả chữ và số.
+</div>
+
+<div class="row">
+    <div class="col-md-6 mb-3">
+        <label asp-for="Password" class="form-label">@(Model.IsEdit ? "Mật khẩu mới" : "Mật khẩu")</label>
+        @if (Model.IsEdit)
+        {
+            <input asp-for="Password" class="form-control" autocomplete="new-password" />
+        }
+        else
+        {
+            <input asp-for="Password" class="form-control" autocomplete="new-password"
+                   data-val-required="Vui lòng nhập mật khẩu" />
+        }
+        <span asp-validation-for="Password" class="text-danger"></span>
+    </div>
+
+    <div class="col-md-6 mb-3">
+        <label asp-for="ConfirmPassword" class="form-label"></label>
+        <input asp-for="ConfirmPassword" class="form-control" autocomplete="new-password" />
+        <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+    </div>
+</div>
