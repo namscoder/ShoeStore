@@ -4,6 +4,8 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <!-- Ảnh người dùng upload không phải mã nguồn: không build, không theo dõi -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);wwwroot\images\products\**</DefaultItemExcludes>
   </PropertyGroup>
 
   <ItemGroup>

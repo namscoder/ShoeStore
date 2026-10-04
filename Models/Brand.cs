@@ -7,7 +7,7 @@ namespace ShoeStore.Models
         public int Id { get; set; }
 
         [Required(ErrorMessage = "Tên thương hiệu không được để trống")]
-        [StringLength(100)]
+        [StringLength(100, ErrorMessage = "Tên thương hiệu không được vượt quá 100 ký tự")]
         public string Name { get; set; } = string.Empty;
 
         [StringLength(500)]

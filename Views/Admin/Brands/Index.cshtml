@@ -1,0 +1,73 @@
+@model IEnumerable<ShoeStore.Models.Brand>
+
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Quản lý thương hiệu";
+}
+
+<div class="container-fluid">
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">
+            @TempData["SuccessMessage"]
+        </div>
+    }
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <a asp-controller="Brands" asp-action="Create" class="btn btn-primary">
+            Thêm thương hiệu
+        </a>
+    </div>
+
+    <table class="table table-bordered table-hover">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Tên thương hiệu</th>
+                <th>Mô tả</th>
+                <th>Thao tác</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            @foreach (var brand in Model)
+            {
+                <tr>
+                    <td>@brand.Id</td>
+
+                    <td>@brand.Name</td>
+
+                    <td class="description-cell">
+                        @if (!string.IsNullOrEmpty(brand.Description))
+                        {
+                            @(brand.Description.Length > 50
+                                ? brand.Description.Substring(0, 50) + "..."
+                                : brand.Description)
+                        }
+                        else
+                        {
+                            <span class="text-muted">Không có mô tả</span>
+                        }
+                    </td>
+
+                    <td>
+                        <a asp-controller="Brands" asp-action="Edit" asp-route-id="@brand.Id"
+                           class="btn btn-warning btn-sm">
+                            Sửa
+                        </a>
+
+                        <form asp-controller="Brands" asp-action="Delete" asp-route-id="@brand.Id" method="post"
+                              class="d-inline">
+
+                            <button type="submit" class="btn btn-danger btn-sm"
+                                    onclick="return confirm('Bạn có chắc chắn muốn xóa thương hiệu này không?');">
+                                Xóa
+                            </button>
+
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+</div>

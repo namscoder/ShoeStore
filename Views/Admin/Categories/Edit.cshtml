@@ -1,0 +1,68 @@
+@model ShoeStore.Models.Category
+
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Sửa Danh Mục";
+}
+
+<div class="container-fluid">
+
+    <h2>Sửa danh mục</h2>
+
+    <form asp-controller="Categories"
+          asp-action="Edit"
+          asp-route-id="@Model.Id"
+          method="post"
+          id="editCategoryForm"
+          autocomplete="off">
+
+        <input type="hidden" asp-for="Id" />
+
+        <div class="mb-3">
+            <label asp-for="Name" class="form-label">
+                Tên danh mục
+            </label>
+
+            <input asp-for="Name"
+                   class="form-control"
+                   autocomplete="off" />
+
+            <span asp-validation-for="Name"
+                  class="text-danger">
+            </span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Description" class="form-label">
+                Mô tả
+            </label>
+
+            <textarea asp-for="Description"
+                      class="form-control"
+                      autocomplete="off"></textarea>
+
+            <span asp-validation-for="Description"
+                  class="text-danger">
+            </span>
+        </div>
+
+        <button type="submit"
+                class="btn btn-primary">
+            Lưu thay đổi
+        </button>
+
+        <a asp-controller="Categories"
+           asp-action="Index"
+           class="btn btn-secondary ms-2">
+            Hủy
+        </a>
+
+    </form>
+
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.21.0/dist/jquery.validate.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery-validation-unobtrusive@4.0.0/dist/jquery.validate.unobtrusive.min.js"></script>
+}

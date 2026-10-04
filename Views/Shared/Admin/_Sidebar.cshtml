@@ -10,8 +10,7 @@
             Tổng quan
         </div>
 
-        <a asp-controller="Admin"
-           asp-action="Index">
+        <a asp-controller="Admin" asp-action="Index">
 
             <i class="bi bi-speedometer2"></i>
 
@@ -24,8 +23,7 @@
             Quản lý
         </div>
 
-        <a asp-controller="Product"
-           asp-action="Index">
+        <a asp-controller="Products" asp-action="Index">
 
             <i class="bi bi-box-seam"></i>
 
@@ -33,12 +31,12 @@
 
         </a>
 
-        <a href="#">
+        <a class="nav-link" asp-controller="Categories" asp-action="Index">
             <i class="bi bi-tags"></i>
             <span>Danh mục</span>
         </a>
 
-        <a href="#">
+        <a class="nav-link" asp-controller="Brands" asp-action="Index">
             <i class="bi bi-shop"></i>
             <span>Thương hiệu</span>
         </a>
@@ -69,8 +67,7 @@
         </a>
 
 
-        <a asp-controller="Home"
-           asp-action="Index">
+        <a asp-controller="Home" asp-action="Index">
 
             <i class="bi bi-house"></i>
 
