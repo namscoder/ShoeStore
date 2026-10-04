@@ -1,10 +1,7 @@
-<<<<<<< HEAD
-=======
-﻿@{
+﻿﻿@{
     // Trang nào đặt ViewData["FullWidth"] = true sẽ không bị bó trong .container (vd: trang chủ)
     var fullWidth = ViewData["FullWidth"] as bool? == true;
 }
->>>>>>> 34681fc5dc4fd22ab8edeb93d626d86e27eb8482
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -16,79 +13,11 @@
     @await RenderSectionAsync("Styles", required: false)
 </head>
 <body>
-<<<<<<< HEAD
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">ShoeStore</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                    </ul>
-
-                    <ul class="navbar-nav">
-                        @if (User.Identity?.IsAuthenticated == true)
-                        {
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle text-dark" href="#" role="button"
-                                   data-bs-toggle="dropdown" aria-expanded="false">
-                                    Xin chào, <strong>@(User.FindFirstValue("FullName") ?? User.Identity.Name)</strong>
-                                </a>
-                                <ul class="dropdown-menu dropdown-menu-end">
-                                    @if (User.IsInRole(AppRoles.Admin))
-                                    {
-                                        <li>
-                                            <a class="dropdown-item" asp-controller="Admin" asp-action="Index">Trang quản trị</a>
-                                        </li>
-                                        <li><hr class="dropdown-divider" /></li>
-                                    }
-                                    <li>
-                                        <form asp-controller="Account" asp-action="Logout" method="post">
-                                            <button type="submit" class="dropdown-item">Đăng xuất</button>
-                                        </form>
-                                    </li>
-                                </ul>
-                            </li>
-                        }
-                        else
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Account" asp-action="Login">Đăng nhập</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="btn btn-dark btn-sm ms-sm-2 mt-1" asp-controller="Account" asp-action="Register">Đăng ký</a>
-                            </li>
-                        }
-                    </ul>
-                </div>
-            </div>
-        </nav>
-    </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @if (TempData["SuccessMessage"] is string successMessage)
-            {
-                <div class="alert alert-success alert-dismissible fade show mt-2" role="alert">
-                    @successMessage
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button>
-                </div>
-            }
-=======
     <partial name="Home/_Header" />
 
     @if (fullWidth)
     {
         <main role="main">
->>>>>>> 34681fc5dc4fd22ab8edeb93d626d86e27eb8482
             @RenderBody()
         </main>
     }

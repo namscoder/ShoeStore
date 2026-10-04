@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Acer\\Desktop\\C#\\ShoeStore\\ShoeStore.csproj": {}
+    "C:\\Users\\trung\\Desktop\\ShoeStore\\ShoeStore.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Acer\\Desktop\\C#\\ShoeStore\\ShoeStore.csproj": {
+    "C:\\Users\\trung\\Desktop\\ShoeStore\\ShoeStore.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Acer\\Desktop\\C#\\ShoeStore\\ShoeStore.csproj",
+        "projectUniqueName": "C:\\Users\\trung\\Desktop\\ShoeStore\\ShoeStore.csproj",
         "projectName": "ShoeStore",
-        "projectPath": "C:\\Users\\Acer\\Desktop\\C#\\ShoeStore\\ShoeStore.csproj",
-        "packagesPath": "C:\\Users\\Acer\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Acer\\Desktop\\C#\\ShoeStore\\obj\\",
+        "projectPath": "C:\\Users\\trung\\Desktop\\ShoeStore\\ShoeStore.csproj",
+        "packagesPath": "C:\\Users\\trung\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\trung\\Desktop\\ShoeStore\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\Acer\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "C:\\Users\\trung\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net10.0"

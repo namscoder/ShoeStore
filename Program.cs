@@ -41,18 +41,8 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
-<<<<<<< HEAD
 // Tạo tài khoản Admin mặc định nếu chưa có
 await DbSeeder.SeedAsync(app.Services);
-=======
-// Thêm dữ liệu mẫu (danh mục, thương hiệu, size, màu, sản phẩm, người dùng, đơn hàng, giỏ hàng)
-// Chạy lại nhiều lần không bị trùng vì DbSeeder bỏ qua những bản ghi đã có
-using (var scope = app.Services.CreateScope())
-{
-    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    await DbSeeder.SeedAsync(db);
-}
->>>>>>> 34681fc5dc4fd22ab8edeb93d626d86e27eb8482
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

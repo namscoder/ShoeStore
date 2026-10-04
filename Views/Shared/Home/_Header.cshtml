@@ -24,7 +24,27 @@
         </ul>
 
         <div class="site-actions">
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+        // Chỉ admin mới thấy nút Quản trị
+        if (User.IsInRole(AppRoles.Admin))
+        {
             <a class="site-admin-link" asp-controller="Admin" asp-action="Index">Quản trị</a>
-        </div>
+        }
+
+        <span class="site-user">
+            Xin chào, <strong>@(User.FindFirstValue("FullName") ?? User.Identity.Name)</strong>
+        </span>
+
+        <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+            <button type="submit" class="site-link-btn">Đăng xuất</button>
+        </form>
+    }
+    else
+    {
+        <a class="site-link" asp-controller="Account" asp-action="Login">Đăng nhập</a>
+        <a class="site-admin-link" asp-controller="Account" asp-action="Register">Đăng ký</a>
+    }
+</div>
     </nav>
 </header>

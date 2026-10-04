@@ -217,47 +217,6 @@ a {
         gap: 28px;
     }
 }
-<<<<<<< HEAD
-
-.product-list {
-    display: flex;
-    justify-content: center;
-    gap: 30px;
-}
-
-.product-card {
-    width: 280px;
-    background: white;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-}
-
-.product-image {
-    height: 180px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 100px;
-    background: #f1f1f1;
-    border-radius: 8px;
-}
-
-.product-card h3 {
-    margin-top: 20px;
-}
-
-.price {
-    font-size: 18px;
-    font-weight: bold;
-}
-
-.product-card button {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-}
 
 /* ===== Đăng nhập / Đăng ký ===== */
 
@@ -308,5 +267,31 @@ a {
     font-size: 56px;
     margin-bottom: 10px;
 }
-=======
->>>>>>> 34681fc5dc4fd22ab8edeb93d626d86e27eb8482
+/* ===== Khu vực tài khoản trên header ===== */
+.site-actions {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.site-user {
+    font-size: 14px;
+    color: var(--ss-ink-2);
+}
+
+.site-link,
+.site-link-btn {
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    color: var(--ss-ink);
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+}
+
+.site-link:hover,
+.site-link-btn:hover {
+    color: var(--ss-accent);
+}
